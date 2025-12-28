@@ -204,7 +204,7 @@ export default function Dashboard() {
 
   const getImportMissingFields = (preview: {
     company?: Company;
-    personas?: Array<Partial<Persona>>;
+    personas?: Array<Partial<Persona> & { postingStyle?: string }>;
     subreddits?: Array<Partial<Subreddit>>;
     keywords?: Array<Partial<Keyword>>;
   }): string[] => {
@@ -229,9 +229,9 @@ const filteredComments = useMemo(() => {
 
   const debugImportPayload = (payload: {
     company?: Company;
-    personas?: Persona[];
-    subreddits?: Subreddit[];
-    keywords?: Keyword[];
+    personas?: Array<Partial<Persona>>;
+    subreddits?: Array<Partial<Subreddit>>;
+    keywords?: Array<Partial<Keyword>>;
     posts?: Post[];
     comments?: Comment[];
   }) => {
@@ -350,9 +350,9 @@ const filteredComments = useMemo(() => {
   async function persistImportBundle(
     payload: {
       company?: Company;
-      personas?: Persona[];
-      subreddits?: Subreddit[];
-      keywords?: Keyword[];
+      personas?: Array<Partial<Persona>>;
+      subreddits?: Array<Partial<Subreddit>>;
+      keywords?: Array<Partial<Keyword>>;
       posts?: Post[];
       comments?: Comment[];
     },
@@ -371,7 +371,11 @@ const filteredComments = useMemo(() => {
     const savedPersonas = payload.personas?.length
       ? await Promise.all(
           payload.personas.map((p) =>
-            upsertPersona({ ...p, companyId: saved.id } as Persona)
+            upsertPersona({
+              ...p,
+              companyId: saved.id,
+              postingStyle: (p.postingStyle as Persona['postingStyle']) || 'balanced',
+            } as Persona)
           )
         )
       : [];
@@ -2013,7 +2017,7 @@ const filteredComments = useMemo(() => {
                         description: '',
                         positioning: '',
                       };
-                      const fallbackPersona = importWizard.personaUsername && importWizard.personaBio
+                      const fallbackPersona: Array<Partial<Persona>> = importWizard.personaUsername && importWizard.personaBio
                         ? [{
                             id: undefined,
                             companyId: '',
@@ -2021,10 +2025,10 @@ const filteredComments = useMemo(() => {
                             bio: importWizard.personaBio,
                             voiceTraits: '',
                             expertise: [],
-                            postingStyle: 'balanced',
+                            postingStyle: 'balanced' as Persona['postingStyle'],
                           }]
                         : [];
-                      const fallbackSubreddit = importWizard.subredditName
+                      const fallbackSubreddit: Array<Partial<Subreddit>> = importWizard.subredditName
                         ? [{
                             id: undefined,
                             companyId: '',
@@ -2032,7 +2036,7 @@ const filteredComments = useMemo(() => {
                             description: '',
                           }]
                         : [];
-                      const fallbackKeyword = importWizard.keyword
+                      const fallbackKeyword: Array<Partial<Keyword>> = importWizard.keyword
                         ? [{
                             id: undefined,
                             companyId: '',
@@ -2042,18 +2046,18 @@ const filteredComments = useMemo(() => {
                           }]
                         : [];
 
-                      const personasToSave =
+                      const personasToSave: Array<Partial<Persona>> =
                         importPreview.personas?.length ? importPreview.personas : fallbackPersona;
-                      const subredditsToSave =
+                      const subredditsToSave: Array<Partial<Subreddit>> =
                         importPreview.subreddits?.length ? importPreview.subreddits : fallbackSubreddit;
-                      const keywordsToSave =
+                      const keywordsToSave: Array<Partial<Keyword>> =
                         importPreview.keywords?.length ? importPreview.keywords : fallbackKeyword;
 
                     const stillMissing = getImportMissingFields({
                       company: companyPayload as Company,
-                      personas: personasToSave,
-                      subreddits: subredditsToSave,
-                      keywords: keywordsToSave,
+                      personas: personasToSave as Array<Partial<Persona>>,
+                      subreddits: subredditsToSave as Array<Partial<Subreddit>>,
+                      keywords: keywordsToSave as Array<Partial<Keyword>>,
                     });
                     if (stillMissing.length) {
                       setImportMissing(stillMissing);

@@ -39,6 +39,7 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
   const issues: QualityIssue[] = [];
   const warnings: string[] = [];
   const suggestions: string[] = [];
+  const promoCheckResult = { issues: [] as QualityIssue[], warnings: [] as string[], warningsByPostId: {} as Record<string, string[]> };
   
   // Run all checks
   issues.push(...checkOverposting(threads));
@@ -50,6 +51,9 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
   
   if (!allowProductMention) {
     const promoCheck = checkPromotionalContent(threads, company);
+    promoCheckResult.issues = promoCheck.issues;
+    promoCheckResult.warnings = promoCheck.warnings;
+    promoCheckResult.warningsByPostId = promoCheck.warningsByPostId;
     issues.push(...promoCheck.issues);
     warnings.push(...promoCheck.warnings);
   }
@@ -78,7 +82,7 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
     }
   }
 
-  const warningsByPostId = allowProductMention ? {} : promoCheck.warningsByPostId;
+  const warningsByPostId = allowProductMention ? {} : promoCheckResult.warningsByPostId;
 
   return {
     validatedThreads: threads,
