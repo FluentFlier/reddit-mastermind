@@ -2047,23 +2047,26 @@ const filteredComments = useMemo(() => {
                         : [];
 
                       const personasToSave: Array<Partial<Persona>> =
-                        importPreview.personas?.length ? importPreview.personas : fallbackPersona;
+                        (importPreview.personas?.length ? importPreview.personas : fallbackPersona).map((p) => ({
+                          ...p,
+                          postingStyle: (p.postingStyle as Persona['postingStyle']) || 'balanced',
+                        }));
                       const subredditsToSave: Array<Partial<Subreddit>> =
                         importPreview.subreddits?.length ? importPreview.subreddits : fallbackSubreddit;
                       const keywordsToSave: Array<Partial<Keyword>> =
                         importPreview.keywords?.length ? importPreview.keywords : fallbackKeyword;
 
-                    const stillMissing = getImportMissingFields({
-                      company: companyPayload as Company,
-                      personas: personasToSave as Array<Partial<Persona>>,
-                      subreddits: subredditsToSave as Array<Partial<Subreddit>>,
-                      keywords: keywordsToSave as Array<Partial<Keyword>>,
-                    });
-                    if (stillMissing.length) {
-                      setImportMissing(stillMissing);
-                      setImportStatus(`Missing fields: ${stillMissing.join(', ')}`);
-                      return;
-                    }
+                      const stillMissing = getImportMissingFields({
+                        company: companyPayload as Company,
+                        personas: personasToSave as Array<Partial<Persona>>,
+                        subreddits: subredditsToSave as Array<Partial<Subreddit>>,
+                        keywords: keywordsToSave as Array<Partial<Keyword>>,
+                      });
+                      if (stillMissing.length) {
+                        setImportMissing(stillMissing);
+                        setImportStatus(`Missing fields: ${stillMissing.join(', ')}`);
+                        return;
+                      }
 
                       const saved = await persistImportBundle(
                         {
@@ -2130,9 +2133,9 @@ const filteredComments = useMemo(() => {
                   <div key={h.id} className={subCard}>
                     <div className="flex items-center justify-between text-sm text-slate-600 dark:text-white/70">
                       <div>
-                        Week {h.week_number} • {new Date(h.generated_at).toLocaleDateString()}
+                        Week {h.weekNumber} • {new Date(h.generatedAt).toLocaleDateString()}
                       </div>
-                      <div>{h.posts_count} posts</div>
+                      <div>{h.postsCount} posts</div>
                     </div>
                   </div>
                 ))}
