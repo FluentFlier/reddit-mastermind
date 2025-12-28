@@ -227,6 +227,8 @@ Write a brief follow-up comment as the OP. You might:
 5. Don't overdo the thanks
 6. If you address someone, use their exact username from the comment list. Do NOT invent names.
 7. Keep it to 1-2 sentences; be concise.
+8. Don't claim you already solved the problem or found a different tool; stay consistent with the post.
+9. Don't introduce a new tool or solution in the OP follow-up.
 
 === OUTPUT FORMAT ===
 Respond with JSON only:
