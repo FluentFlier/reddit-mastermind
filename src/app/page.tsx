@@ -1183,8 +1183,8 @@ const filteredComments = useMemo(() => {
                       Tip: Use ⌘K to jump to any section.
                     </div>
                   </div>
-                  <div className="grid gap-4 lg:grid-cols-5 items-end">
-                    <div>
+                  <div className="grid gap-4 lg:grid-cols-5 items-start">
+                    <div className="flex h-full flex-col">
                       <label className={labelClass}>Company for generation</label>
                       <div className="relative mt-2">
                         <Building2 className={inputIcon} />
@@ -1201,8 +1201,9 @@ const filteredComments = useMemo(() => {
                           ))}
                         </select>
                       </div>
+                      <div className="mt-1 min-h-[14px] text-[11px] text-transparent">spacer</div>
                     </div>
-                    <div>
+                    <div className="flex h-full flex-col">
                       <label className={labelClass}>Posts per week</label>
                       <div className="mt-2 rounded-full border border-[#e5e5e5] bg-[#f5f5f5] p-1 dark:border-white/10 dark:bg-[#18181b]">
                         <div className="grid grid-cols-5 gap-1">
@@ -1221,8 +1222,9 @@ const filteredComments = useMemo(() => {
                           ))}
                         </div>
                       </div>
+                      <div className="mt-1 min-h-[14px] text-[11px] text-transparent">spacer</div>
                     </div>
-                    <div>
+                    <div className="flex h-full flex-col">
                       <label className={labelClass}>Weeks to generate</label>
                       <div className="relative mt-2">
                         <CalendarRange className={inputIcon} />
@@ -1234,8 +1236,9 @@ const filteredComments = useMemo(() => {
                           className={inputBase}
                         />
                       </div>
+                      <div className="mt-1 min-h-[14px] text-[11px] text-transparent">spacer</div>
                     </div>
-                    <div>
+                    <div className="flex h-full flex-col">
                       <label className={labelClass}>Allow product mentions</label>
                       <div className="relative mt-2">
                         <Sparkles className={inputIcon} />
@@ -1257,13 +1260,13 @@ const filteredComments = useMemo(() => {
                           <option value="yes">Yes</option>
                         </select>
                       </div>
-                      <div className="mt-1 text-[11px] text-slate-500 dark:text-white/50">
+                      <div className="mt-1 min-h-[14px] text-[11px] text-slate-500 dark:text-white/50">
                         {preferences.allowProductMention
                           ? 'Mentions enabled'
                           : 'Mentions disabled'}
                       </div>
                     </div>
-                    <div>
+                    <div className="flex h-full flex-col">
                       <label className={labelClass}>Mentions per thread</label>
                       <div className="relative mt-2">
                         <Target className={inputIcon} />
@@ -1285,7 +1288,7 @@ const filteredComments = useMemo(() => {
                           }`}
                         />
                       </div>
-                      <div className="mt-1 text-[11px] text-slate-500 dark:text-white/50">
+                      <div className="mt-1 min-h-[14px] text-[11px] text-slate-500 dark:text-white/50">
                         Set to 0 to avoid mentions.
                       </div>
                     </div>
