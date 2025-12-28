@@ -72,7 +72,10 @@ export async function listCompanies(userExternalId: string): Promise<Company[]> 
     .or(`user_external_id.eq.${userExternalId},user_external_id.is.null`)
     .order('created_at', { ascending: true });
   if (!error) return (data || []).map(mapCompany);
-  if (error.code === 'PGRST204' && error.message?.includes('user_external_id')) {
+  if (
+    (error.code === 'PGRST204' || error.code === '42703') &&
+    error.message?.includes('user_external_id')
+  ) {
     const fallback = await client.from('companies').select('*').order('created_at', { ascending: true });
     if (fallback.error) throw fallback.error;
     return (fallback.data || []).map(mapCompany);
@@ -114,7 +117,10 @@ export async function upsertCompany(
     .select('*')
     .single();
   if (!error) return mapCompany(data);
-  if (error.code === 'PGRST204' && error.message?.includes('user_external_id')) {
+  if (
+    (error.code === 'PGRST204' || error.code === '42703') &&
+    error.message?.includes('user_external_id')
+  ) {
     const { user_external_id, ...fallbackPayload } = payload;
     const fallback = await client
       .from('companies')
@@ -146,7 +152,10 @@ export async function upsertCompanyGlobal(
     .select('*')
     .single();
   if (!error) return mapCompany(data);
-  if (error.code === 'PGRST204' && error.message?.includes('user_external_id')) {
+  if (
+    (error.code === 'PGRST204' || error.code === '42703') &&
+    error.message?.includes('user_external_id')
+  ) {
     const fallback = await client
       .from('companies')
       .upsert(payload)
