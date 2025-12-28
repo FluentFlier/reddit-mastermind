@@ -66,7 +66,7 @@ NOTE: Do NOT mention ${company.name} directly in the post. The goal is to create
 ${preferences?.minPostLength ? `10. Minimum post length: ${preferences.minPostLength} characters` : ''}
 ${preferences?.maxPostLength ? `11. Hard max: ${preferences.maxPostLength} characters (stop early).` : ''}
 ${preferences?.bannedPhrases?.length ? `12. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
-${preferences?.campaignBrief ? `13. Campaign brief: ${preferences.campaignBrief} (treat as a short hint, do not expand it).` : ''}
+${preferences?.campaignBrief ? `13. Campaign brief (must follow exactly, do not expand or add extra context): ${preferences.campaignBrief}` : ''}
 ${preferences?.postGuidelines ? `14. Additional guidance: ${preferences.postGuidelines}` : ''}
 
 === OUTPUT FORMAT ===
@@ -173,7 +173,7 @@ ${forceDisagreement ? '11. Include a mild disagreement or nuance (e.g., "depends
 ${preferences?.minCommentLength ? `12. Minimum length: ${preferences.minCommentLength} characters` : ''}
 ${preferences?.maxCommentLength ? `13. Hard max: ${preferences.maxCommentLength} characters (stop early).` : ''}
 ${preferences?.bannedPhrases?.length ? `14. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
-${preferences?.campaignBrief ? `15. Campaign brief: ${preferences.campaignBrief} (treat as a short hint, do not expand it).` : ''}
+${preferences?.campaignBrief ? `15. Campaign brief (must follow exactly, do not expand or add extra context): ${preferences.campaignBrief}` : ''}
 ${preferences?.commentGuidelines ? `16. Additional guidance: ${preferences.commentGuidelines}` : ''}
 
 === OUTPUT FORMAT ===
@@ -318,7 +318,7 @@ ${original}
 INSTRUCTIONS:
 ${instructions}
 
-Keep the same intent but make it feel fresh and different.
+Keep the same intent but make it feel fresh and different. Follow any campaign brief or constraints exactly.
 
 Respond with JSON only:
 {

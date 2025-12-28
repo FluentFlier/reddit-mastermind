@@ -676,6 +676,20 @@ const filteredComments = useMemo(() => {
             minPostLength: Math.max(preferences.minPostLength || 0, 180),
           }
         : preferences;
+      const brief = effectivePreferences.campaignBrief?.trim();
+      const enforcedPreferences: GenerationPreferences = brief
+        ? {
+            ...effectivePreferences,
+            postGuidelines: [
+              `Follow this brief exactly: ${brief}`,
+              effectivePreferences.postGuidelines,
+            ].filter(Boolean).join(' '),
+            commentGuidelines: [
+              `Follow this brief exactly: ${brief}`,
+              effectivePreferences.commentGuidelines,
+            ].filter(Boolean).join(' '),
+          }
+        : effectivePreferences;
 
       const outputs: PlannerOutput[] = [];
 
@@ -691,7 +705,7 @@ const filteredComments = useMemo(() => {
             keywords: keywordsPayload,
             postsPerWeek,
             weekStartDate: weekStartDate.toISOString(),
-            preferences: effectivePreferences,
+            preferences: enforcedPreferences,
             constraints,
           }),
         });
@@ -898,11 +912,25 @@ const filteredComments = useMemo(() => {
             minPostLength: Math.max(preferences.minPostLength || 0, 180),
           }
         : preferences;
+      const brief = basePreferences.campaignBrief?.trim();
+      const enforcedBase: GenerationPreferences = brief
+        ? {
+            ...basePreferences,
+            postGuidelines: [
+              `Follow this brief exactly: ${brief}`,
+              basePreferences.postGuidelines,
+            ].filter(Boolean).join(' '),
+            commentGuidelines: [
+              `Follow this brief exactly: ${brief}`,
+              basePreferences.commentGuidelines,
+            ].filter(Boolean).join(' '),
+          }
+        : basePreferences;
 
       const regenPreferences: GenerationPreferences = {
-        ...basePreferences,
-        postGuidelines: [basePreferences.postGuidelines, notes].filter(Boolean).join(' '),
-        commentGuidelines: [basePreferences.commentGuidelines, notes].filter(Boolean).join(' '),
+        ...enforcedBase,
+        postGuidelines: [enforcedBase.postGuidelines, notes].filter(Boolean).join(' '),
+        commentGuidelines: [enforcedBase.commentGuidelines, notes].filter(Boolean).join(' '),
       };
 
       const targetSubreddit = subredditsPayload.find((s) => s.id === post.subredditId) || null;
