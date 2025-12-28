@@ -114,7 +114,3 @@ supabase/schema.sql     # DB schema
 ## About
 
 Built by **Anirudh Manjesh** as a full‑stack product + AI systems project.
-
-If you’re reviewing for hiring: this repo demonstrates end‑to‑end product thinking (UX, LLM quality controls, persistence, and deploy readiness), not just a model wrapper.
-
-If you want a quick demo walk‑through video or a more technical deep‑dive, I can add it.
