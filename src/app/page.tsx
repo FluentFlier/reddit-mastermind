@@ -418,12 +418,15 @@ export default function Dashboard() {
   }
 
   async function seedSlideforge(userExternalId: string) {
+    const existing = await findCompanyByName('Slideforge');
+    if (existing) return existing;
+
     const response = await fetch('/api/seed-slideforge');
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || 'Failed to seed Slideforge');
     }
-    const saved = await persistImportBundle(data.data, userExternalId);
+    const saved = await persistImportBundle(data.data, userExternalId, 'global');
     return saved;
   }
 
@@ -480,6 +483,28 @@ export default function Dashboard() {
     if (company) {
       setCompanyDraft(company);
       setConstraints(company.constraints || DEFAULT_CONSTRAINTS);
+    }
+
+    if (!result) {
+      const historyItems = await loadCalendarHistory(companyId, 1);
+      const latest = historyItems[0];
+      if (latest?.week_number) {
+        const posts = await loadWeekPosts(companyId, latest.week_number);
+        const commentsNested = await Promise.all(posts.map((post) => loadPostComments(post.id)));
+        const comments = commentsNested.flat();
+        setResult({
+          posts,
+          comments,
+          qualityReport: latest.quality_report || {
+            overallScore: 0,
+            issues: [],
+            warnings: [],
+            suggestions: [],
+          },
+          weekNumber: latest.week_number,
+          generatedAt: latest.generated_at ? new Date(latest.generated_at) : new Date(),
+        });
+      }
     }
   }
 
