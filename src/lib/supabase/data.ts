@@ -71,8 +71,13 @@ export async function listCompanies(userExternalId: string): Promise<Company[]> 
     .select('*')
     .or(`user_external_id.eq.${userExternalId},user_external_id.is.null`)
     .order('created_at', { ascending: true });
-  if (error) throw error;
-  return (data || []).map(mapCompany);
+  if (!error) return (data || []).map(mapCompany);
+  if (error.code === 'PGRST204' && error.message?.includes('user_external_id')) {
+    const fallback = await client.from('companies').select('*').order('created_at', { ascending: true });
+    if (fallback.error) throw fallback.error;
+    return (fallback.data || []).map(mapCompany);
+  }
+  throw error;
 }
 
 export async function findCompanyByName(name: string): Promise<Company | null> {
@@ -108,8 +113,18 @@ export async function upsertCompany(
     .upsert(payload)
     .select('*')
     .single();
-  if (error) throw error;
-  return mapCompany(data);
+  if (!error) return mapCompany(data);
+  if (error.code === 'PGRST204' && error.message?.includes('user_external_id')) {
+    const { user_external_id, ...fallbackPayload } = payload;
+    const fallback = await client
+      .from('companies')
+      .upsert(fallbackPayload)
+      .select('*')
+      .single();
+    if (fallback.error) throw fallback.error;
+    return mapCompany(fallback.data);
+  }
+  throw error;
 }
 
 export async function upsertCompanyGlobal(
@@ -118,7 +133,6 @@ export async function upsertCompanyGlobal(
   const client = requireSupabase();
   const payload = {
     id: company.id,
-    user_external_id: null,
     name: company.name,
     description: company.description || null,
     positioning: company.positioning || null,
@@ -128,11 +142,20 @@ export async function upsertCompanyGlobal(
   };
   const { data, error } = await client
     .from('companies')
-    .upsert(payload)
+    .upsert({ ...payload, user_external_id: null })
     .select('*')
     .single();
-  if (error) throw error;
-  return mapCompany(data);
+  if (!error) return mapCompany(data);
+  if (error.code === 'PGRST204' && error.message?.includes('user_external_id')) {
+    const fallback = await client
+      .from('companies')
+      .upsert(payload)
+      .select('*')
+      .single();
+    if (fallback.error) throw fallback.error;
+    return mapCompany(fallback.data);
+  }
+  throw error;
 }
 
 export async function deleteCompany(companyId: string): Promise<void> {
