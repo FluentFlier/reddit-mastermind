@@ -54,21 +54,21 @@ export function ThreadPreview({
   };
   
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="rounded-2xl border border-[#e5e5e5] bg-white shadow-sm overflow-hidden dark:border-white/10 dark:bg-[#18181b]">
       {/* Header */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+      <div className="px-5 py-4 bg-[#f5f5f5] border-b border-[#e5e5e5] flex flex-wrap items-center justify-between gap-4 dark:border-white/10 dark:bg-[#0f0f0f]">
         <div className="flex items-center flex-wrap gap-2 min-w-0">
-          <span className="text-sm font-medium text-reddit-orange">
+          <span className="text-sm font-semibold text-[#f97316]">
             {post.subredditName}
           </span>
-          <span className="text-gray-300">•</span>
-          <span className="text-sm text-gray-500">
+          <span className="text-gray-300 dark:text-white/20">•</span>
+          <span className="text-sm text-slate-500 dark:text-white/60">
             {formatDisplayTime(new Date(post.scheduledAt))}
           </span>
           <span className={`text-xs px-2 py-0.5 rounded-full ${
             post.status === 'approved'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600'
+              ? 'bg-green-100 text-green-700 dark:bg-emerald-500/20 dark:text-emerald-200'
+              : 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-white/60'
           }`}>
             {post.status}
           </span>
@@ -80,7 +80,7 @@ export function ThreadPreview({
           {onRegenerate && (
             <button
               onClick={() => onRegenerate(post, regenNotes)}
-              className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+              className="px-3 py-1 text-xs bg-white text-slate-600 rounded-full border border-[#e5e5e5] hover:bg-[#f5f5f5] dark:border-white/10 dark:bg-[#18181b] dark:text-white/70 dark:hover:bg-white/10"
             >
               Regenerate Thread
             </button>
@@ -88,12 +88,12 @@ export function ThreadPreview({
           {onUpdatePostStatus && (
             <button
               onClick={() =>
-                onUpdatePostStatus(
+              onUpdatePostStatus(
                   post.id,
                   post.status === 'approved' ? 'draft' : 'approved'
                 )
               }
-              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              className="px-3 py-1 text-xs bg-[#f97316]/10 text-[#f97316] rounded-full hover:bg-[#f97316]/15"
             >
               {post.status === 'approved' ? 'Mark Draft' : 'Approve Post'}
             </button>
@@ -101,19 +101,19 @@ export function ThreadPreview({
           {onClose && (
             <button 
               onClick={onClose}
-              className="p-1 hover:bg-gray-200 rounded"
+              className="p-1 hover:bg-[#f5f5f5] rounded dark:hover:bg-white/10"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-4 h-4 text-slate-500 dark:text-white/60" />
             </button>
           )}
         </div>
       </div>
 
       {onRegenerate && (
-        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-          <label className="text-xs text-gray-500">Regeneration notes</label>
+        <div className="px-5 py-4 border-b border-[#e5e5e5] bg-[#fafafa] dark:border-white/10 dark:bg-[#0f0f0f]">
+          <label className="text-xs text-slate-500 dark:text-white/60">Regeneration notes</label>
           <textarea
-            className="mt-1 w-full border border-gray-200 rounded-md p-2 text-sm"
+            className="mt-2 w-full rounded-xl border border-[#e5e5e5] bg-white p-3 text-sm text-slate-700 outline-none focus:border-[#f97316]/60 dark:border-white/10 dark:bg-[#18181b] dark:text-white/80"
             rows={2}
             value={regenNotes}
             onChange={(e) => setRegenNotes(e.target.value)}
@@ -123,10 +123,10 @@ export function ThreadPreview({
       )}
       
       {/* Post */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-5 border-b border-[#e5e5e5] dark:border-white/10">
         <div className="flex items-start gap-3">
           {/* Vote buttons (decorative) */}
-          <div className="flex flex-col items-center gap-1 text-gray-400">
+          <div className="flex flex-col items-center gap-1 text-slate-300 dark:text-white/30">
             <ChevronUp className="w-5 h-5" />
             <span className="text-xs font-medium">•</span>
             <ChevronDown className="w-5 h-5" />
@@ -144,19 +144,19 @@ export function ThreadPreview({
                   type="text"
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-xl border border-[#e5e5e5] bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#f97316]/60 dark:border-white/10 dark:bg-[#18181b] dark:text-white"
                   placeholder="Post title"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSaveEdit('post', post.id)}
-                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                    className="px-3 py-1 bg-[#f97316] text-white text-sm rounded hover:bg-[#ea580c]"
                   >
                     Save
                   </button>
                   <button
                     onClick={() => setEditingId(null)}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300"
+                    className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20"
                   >
                     Cancel
                   </button>
@@ -164,49 +164,49 @@ export function ThreadPreview({
               </div>
             ) : (
               <>
-                <h3 className="font-semibold text-gray-900 mb-2 group flex items-center gap-2 break-words">
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2 group flex items-center gap-2 break-words text-[17px] leading-6">
                   {post.title}
                   {onEdit && (
                     <button
                       onClick={() => handleStartEdit(post.id, post.title)}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded"
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#f5f5f5] rounded dark:hover:bg-white/10"
                     >
-                      <Edit2 className="w-3 h-3 text-gray-400" />
+                      <Edit2 className="w-3 h-3 text-slate-400" />
                     </button>
                   )}
                 </h3>
-                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                <p className="text-slate-700 dark:text-white/80 text-[15px] leading-6 whitespace-pre-wrap break-words">
                   {post.body}
                 </p>
               </>
             )}
             
             {/* Post metadata */}
-            <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-500">
+            <div className="flex flex-wrap items-center gap-3 mt-4 text-xs text-slate-500 dark:text-white/60">
               <span className="flex items-center gap-1">
                 <MessageSquare className="w-3 h-3" />
                 {comments.length} comments
               </span>
-              <span className="px-2 py-0.5 bg-gray-100 rounded text-gray-600">
+              <span className="px-2 py-0.5 bg-[#f5f5f5] rounded text-slate-600 dark:bg-white/10 dark:text-white/60">
                 {post.threadType}
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-500">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-white/60">
               <div>
-                <span className="text-gray-400">Scheduled:</span>{' '}
+                <span className="text-slate-400 dark:text-white/40">Scheduled:</span>{' '}
                 {formatDisplayTime(new Date(post.scheduledAt))}
               </div>
               <div>
-                <span className="text-gray-400">Status:</span> {post.status}
+                <span className="text-slate-400 dark:text-white/40">Status:</span> {post.status}
               </div>
               {post.qualityScore !== undefined && (
                 <div>
-                  <span className="text-gray-400">Quality:</span> {post.qualityScore.toFixed(1)}
+                  <span className="text-slate-400 dark:text-white/40">Quality:</span> {post.qualityScore.toFixed(1)}
                 </div>
               )}
               <div>
-                <span className="text-gray-400">Replies:</span> {comments.length}
+                <span className="text-slate-400 dark:text-white/40">Replies:</span> {comments.length}
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@ export function ThreadPreview({
       </div>
       
       {/* Comments */}
-      <div className="p-4 space-y-4">
+      <div className="p-5 space-y-4">
         {comments.map((comment, index) => {
           const commentPersona = getPersona(comment.personaId);
           const isOP = comment.personaId === post.personaId;
@@ -222,11 +222,11 @@ export function ThreadPreview({
           return (
             <div 
               key={comment.id}
-              className={`${index > 0 ? 'border-l-2 border-gray-200 pl-4 ml-4' : ''}`}
+              className={`${index > 0 ? 'ml-6' : ''}`}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 rounded-xl border border-[#e5e5e5] bg-[#fafafa] p-3 dark:border-white/10 dark:bg-[#0f0f0f]">
                 {/* Mini vote buttons */}
-                <div className="flex flex-col items-center gap-0.5 text-gray-300">
+                <div className="flex flex-col items-center gap-0.5 text-slate-300 dark:text-white/30">
                   <ChevronUp className="w-4 h-4" />
                   <ChevronDown className="w-4 h-4" />
                 </div>
@@ -240,7 +240,7 @@ export function ThreadPreview({
                         role={isOP ? 'op' : undefined}
                       />
                     )}
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span className="text-xs text-slate-400 dark:text-white/40 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       +{comment.delayMinutes}m
                     </span>
@@ -251,36 +251,36 @@ export function ThreadPreview({
                       <textarea
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full rounded-xl border border-[#e5e5e5] bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#f97316]/60 dark:border-white/10 dark:bg-[#18181b] dark:text-white"
                         rows={2}
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSaveEdit('comment', comment.id)}
-                          className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                          className="px-3 py-1 bg-[#f97316] text-white text-sm rounded hover:bg-[#ea580c]"
                         >
                           Save
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
-                          className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300"
+                          className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20"
                         >
                           Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-gray-700 text-sm group flex items-start gap-2">
-                      <div className="flex-1 whitespace-pre-wrap break-words">
+                    <div className="text-slate-700 dark:text-white/80 text-sm group flex items-start gap-2">
+                      <div className="flex-1 whitespace-pre-wrap break-words leading-6">
                         {comment.content}
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         {onEdit && (
                           <button
                             onClick={() => handleStartEdit(comment.id, comment.content)}
-                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded"
+                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#f5f5f5] rounded dark:hover:bg-white/10"
                           >
-                            <Edit2 className="w-3 h-3 text-gray-400" />
+                            <Edit2 className="w-3 h-3 text-slate-400" />
                           </button>
                         )}
                         {onUpdateCommentStatus && (
@@ -291,7 +291,7 @@ export function ThreadPreview({
                                 comment.status === 'approved' ? 'draft' : 'approved'
                               )
                             }
-                            className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded"
+                            className="text-[10px] px-2 py-0.5 bg-[#f5f5f5] text-slate-600 rounded dark:bg-white/10 dark:text-white/60"
                           >
                             {comment.status === 'approved' ? 'Mark Draft' : 'Approve'}
                           </button>
@@ -306,7 +306,7 @@ export function ThreadPreview({
         })}
       </div>
       {(post.qualityIssues?.length || post.qualityWarnings?.length) && (
-        <div className="px-4 pb-4 text-xs text-gray-600 space-y-2">
+        <div className="px-5 pb-5 text-xs text-slate-600 dark:text-white/70 space-y-2">
           {post.qualityIssues?.length ? (
             <div>
               <div className="font-semibold text-red-600">Issues</div>
@@ -330,17 +330,17 @@ export function ThreadPreview({
         </div>
       )}
       {onUpdatePostNotes && (
-        <div className="px-4 pb-4">
-          <label className="text-xs text-gray-500">Review notes</label>
+        <div className="px-5 pb-5">
+          <label className="text-xs text-slate-500 dark:text-white/60">Review notes</label>
           <textarea
-            className="mt-1 w-full border border-gray-200 rounded-md p-2 text-sm"
+            className="mt-2 w-full rounded-xl border border-[#e5e5e5] bg-white p-3 text-sm text-slate-700 outline-none focus:border-[#f97316]/60 dark:border-white/10 dark:bg-[#18181b] dark:text-white"
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
           <button
             onClick={() => onUpdatePostNotes(post.id, notes)}
-            className="mt-2 px-3 py-1 text-xs bg-gray-900 text-white rounded"
+            className="mt-2 px-3 py-1 text-xs bg-[#111827] text-white rounded hover:bg-[#0f172a]"
           >
             Save notes
           </button>
@@ -361,18 +361,18 @@ interface ThreadCardProps {
 export function ThreadCard({ post, commentCount, persona, onClick }: ThreadCardProps) {
   return (
     <div 
-      className="bg-white rounded-lg border border-gray-200 p-3 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer h-full flex flex-col"
+      className="rounded-xl border border-[#e5e5e5] bg-white p-3 hover:border-[#d4d4d4] hover:shadow-sm transition-all cursor-pointer h-full flex flex-col dark:border-white/10 dark:bg-[#18181b] dark:hover:border-white/20"
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <span className="text-xs font-medium text-reddit-orange truncate">
+        <span className="text-xs font-semibold text-[#f97316] truncate">
           {post.subredditName}
         </span>
         <div className="flex items-center gap-1 flex-shrink-0">
           <span className={`text-[10px] px-2 py-0.5 rounded-full ${
             post.status === 'approved'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600'
+              ? 'bg-green-100 text-green-700 dark:bg-emerald-500/20 dark:text-emerald-200'
+              : 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-white/60'
           }`}>
             {post.status}
           </span>
@@ -382,13 +382,13 @@ export function ThreadCard({ post, commentCount, persona, onClick }: ThreadCardP
         </div>
       </div>
       
-      <h4 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2 flex-1">
+      <h4 className="font-medium text-slate-900 dark:text-white text-sm line-clamp-2 mb-2 flex-1">
         {post.title}
       </h4>
       
       <div className="flex items-center justify-between">
         {persona && <PersonaAvatar persona={persona} size="sm" />}
-        <span className="text-xs text-gray-500 flex items-center gap-1">
+        <span className="text-xs text-slate-500 dark:text-white/60 flex items-center gap-1">
           <MessageSquare className="w-3 h-3" />
           {commentCount}
         </span>
