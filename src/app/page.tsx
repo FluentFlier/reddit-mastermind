@@ -1611,90 +1611,159 @@ const filteredComments = useMemo(() => {
               </div>
               <div className="space-y-2">
                 {personas.map((p) => (
-                  <div key={p.id} className={subCard}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">{p.username}</div>
-                        <div className="text-xs text-slate-500 dark:text-white/60">{p.postingStyle}</div>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <button
-                          onClick={() =>
-                            setPersonaDraft({
-                              id: p.id,
-                              username: p.username,
-                              bio: p.bio,
-                              voiceTraits: p.voiceTraits,
-                              expertise: p.expertise,
-                              postingStyle: p.postingStyle,
-                            })
-                          }
-                          className="text-slate-600 transition hover:text-slate-900 dark:text-white/60 dark:hover:text-white"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeletePersona(p.id)}
-                          className="text-slate-500 transition hover:text-slate-900 dark:text-white/50 dark:hover:text-white"
-                        >
-                          Delete
-                        </button>
+                  <div key={p.id} className="space-y-3">
+                    <div className={subCard}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium text-slate-900 dark:text-white">{p.username}</div>
+                          <div className="text-xs text-slate-500 dark:text-white/60">{p.postingStyle}</div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs">
+                          <button
+                            onClick={() =>
+                              setPersonaDraft({
+                                id: p.id,
+                                username: p.username,
+                                bio: p.bio,
+                                voiceTraits: p.voiceTraits,
+                                expertise: p.expertise,
+                                postingStyle: p.postingStyle,
+                              })
+                            }
+                            className="text-slate-600 transition hover:text-slate-900 dark:text-white/60 dark:hover:text-white"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeletePersona(p.id)}
+                            className="text-slate-500 transition hover:text-slate-900 dark:text-white/50 dark:hover:text-white"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
+                    {personaDraft.id === p.id && (
+                      <div className={`${subCard} space-y-3`}>
+                        <input
+                          type="text"
+                          placeholder="Username"
+                          value={personaDraft.username || ''}
+                          onChange={(e) => setPersonaDraft((prev) => ({ ...prev, username: e.target.value }))}
+                          className={inputPlain}
+                        />
+                        <textarea
+                          placeholder="Bio"
+                          value={personaDraft.bio || ''}
+                          onChange={(e) => setPersonaDraft((prev) => ({ ...prev, bio: e.target.value }))}
+                          className={`${inputPlain} min-h-[120px]`}
+                          rows={3}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Expertise (comma separated)"
+                          value={(personaDraft.expertise || []).join(', ')}
+                          onChange={(e) =>
+                            setPersonaDraft((prev) => ({
+                              ...prev,
+                              expertise: e.target.value.split(',').map((t) => t.trim()).filter(Boolean),
+                            }))
+                          }
+                          className={inputPlain}
+                        />
+                        <select
+                          value={personaDraft.postingStyle || 'balanced'}
+                          onChange={(e) =>
+                            setPersonaDraft((prev) => ({ ...prev, postingStyle: e.target.value as Persona['postingStyle'] }))
+                          }
+                          className={inputPlain}
+                        >
+                          <option value="asks_questions">Asks questions</option>
+                          <option value="gives_answers">Gives answers</option>
+                          <option value="balanced">Balanced</option>
+                        </select>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleSavePersona}
+                            className="flex-1 rounded-xl bg-[#f97316] py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ea580c]"
+                          >
+                            Update Persona
+                          </button>
+                          <button
+                            onClick={() =>
+                              setPersonaDraft({
+                                username: '',
+                                bio: '',
+                                voiceTraits: '',
+                                expertise: [],
+                                postingStyle: 'balanced',
+                              })
+                            }
+                            className="flex-1 rounded-xl border border-[#e5e5e5] py-2 text-sm text-slate-600 transition hover:bg-[#f5f5f5] dark:border-white/10 dark:text-white/70 dark:hover:bg-white/10"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
-              <input
-                type="text"
-                placeholder="Username"
-                value={personaDraft.username || ''}
-                onChange={(e) => setPersonaDraft((prev) => ({ ...prev, username: e.target.value }))}
-                className={inputPlain}
-              />
-              <textarea
-                placeholder="Bio"
-                value={personaDraft.bio || ''}
-                onChange={(e) => setPersonaDraft((prev) => ({ ...prev, bio: e.target.value }))}
-                className={`${inputPlain} min-h-[120px]`}
-                rows={3}
-              />
-              <input
-                type="text"
-                placeholder="Expertise (comma separated)"
-                value={(personaDraft.expertise || []).join(', ')}
-                onChange={(e) =>
-                  setPersonaDraft((prev) => ({
-                    ...prev,
-                    expertise: e.target.value.split(',').map((t) => t.trim()).filter(Boolean),
-                  }))
-                }
-                className={inputPlain}
-              />
-              <select
-                value={personaDraft.postingStyle || 'balanced'}
-                onChange={(e) =>
-                  setPersonaDraft((prev) => ({ ...prev, postingStyle: e.target.value as Persona['postingStyle'] }))
-                }
-                className={inputPlain}
-              >
-                <option value="asks_questions">Asks questions</option>
-                <option value="gives_answers">Gives answers</option>
-                <option value="balanced">Balanced</option>
-              </select>
-              <button
-                onClick={handleSavePersona}
-                className="w-full rounded-xl bg-[#f97316] py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ea580c]"
-              >
-                {personaDraft.id ? 'Update Persona' : 'Add Persona'}
-              </button>
-              <button
-                onClick={() =>
-                  setPersonaDraft({ username: '', bio: '', voiceTraits: '', expertise: [], postingStyle: 'balanced' })
-                }
-                className="w-full rounded-xl border border-[#e5e5e5] py-2 text-sm text-slate-600 transition hover:bg-[#f5f5f5] dark:border-white/10 dark:text-white/70 dark:hover:bg-white/10"
-              >
-                Clear
-              </button>
+              {personaDraft.id ? null : (
+                <div className={`${subCard} space-y-3`}>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={personaDraft.username || ''}
+                    onChange={(e) => setPersonaDraft((prev) => ({ ...prev, username: e.target.value }))}
+                    className={inputPlain}
+                  />
+                  <textarea
+                    placeholder="Bio"
+                    value={personaDraft.bio || ''}
+                    onChange={(e) => setPersonaDraft((prev) => ({ ...prev, bio: e.target.value }))}
+                    className={`${inputPlain} min-h-[120px]`}
+                    rows={3}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Expertise (comma separated)"
+                    value={(personaDraft.expertise || []).join(', ')}
+                    onChange={(e) =>
+                      setPersonaDraft((prev) => ({
+                        ...prev,
+                        expertise: e.target.value.split(',').map((t) => t.trim()).filter(Boolean),
+                      }))
+                    }
+                    className={inputPlain}
+                  />
+                  <select
+                    value={personaDraft.postingStyle || 'balanced'}
+                    onChange={(e) =>
+                      setPersonaDraft((prev) => ({ ...prev, postingStyle: e.target.value as Persona['postingStyle'] }))
+                    }
+                    className={inputPlain}
+                  >
+                    <option value="asks_questions">Asks questions</option>
+                    <option value="gives_answers">Gives answers</option>
+                    <option value="balanced">Balanced</option>
+                  </select>
+                  <button
+                    onClick={handleSavePersona}
+                    className="w-full rounded-xl bg-[#f97316] py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ea580c]"
+                  >
+                    Add Persona
+                  </button>
+                  <button
+                    onClick={() =>
+                      setPersonaDraft({ username: '', bio: '', voiceTraits: '', expertise: [], postingStyle: 'balanced' })
+                    }
+                    className="w-full rounded-xl border border-[#e5e5e5] py-2 text-sm text-slate-600 transition hover:bg-[#f5f5f5] dark:border-white/10 dark:text-white/70 dark:hover:bg-white/10"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
