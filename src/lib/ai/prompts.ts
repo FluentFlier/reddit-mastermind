@@ -165,15 +165,16 @@ ${(shouldMentionProduct && preferences?.allowProductMention !== false)
 6. Don't start with "Great question!" or similar platitudes
 7. Reference something specific from the post or previous comments
 8. Occasional light humor or personality is good
+9. If you address someone, use their exact username from the post or comments (e.g., "${post.personaUsername}" or another listed commenter) or say "OP". Do NOT invent names.
 ${persona.postingStyle === 'gives_answers' 
-  ? '9. Share practical advice or specific recommendations based on your expertise'
-  : '9. Share your own experience or perspective on the topic'}
-${forceDisagreement ? '10. Include a mild disagreement or nuance (e.g., "depends", "in my case", "but").' : ''}
-${preferences?.minCommentLength ? `10. Minimum length: ${preferences.minCommentLength} characters` : ''}
-${preferences?.maxCommentLength ? `11. Maximum length: ${preferences.maxCommentLength} characters` : ''}
-${preferences?.bannedPhrases?.length ? `12. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
-${preferences?.campaignBrief ? `13. Campaign brief: ${preferences.campaignBrief}` : ''}
-${preferences?.commentGuidelines ? `14. Additional guidance: ${preferences.commentGuidelines}` : ''}
+  ? '10. Share practical advice or specific recommendations based on your expertise'
+  : '10. Share your own experience or perspective on the topic'}
+${forceDisagreement ? '11. Include a mild disagreement or nuance (e.g., "depends", "in my case", "but").' : ''}
+${preferences?.minCommentLength ? `12. Minimum length: ${preferences.minCommentLength} characters` : ''}
+${preferences?.maxCommentLength ? `13. Maximum length: ${preferences.maxCommentLength} characters` : ''}
+${preferences?.bannedPhrases?.length ? `14. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
+${preferences?.campaignBrief ? `15. Campaign brief: ${preferences.campaignBrief}` : ''}
+${preferences?.commentGuidelines ? `16. Additional guidance: ${preferences.commentGuidelines}` : ''}
 
 === OUTPUT FORMAT ===
 Respond with JSON only:
@@ -224,6 +225,7 @@ Write a brief follow-up comment as the OP. You might:
 3. Keep it brief (1-2 sentences)
 4. Natural, casual tone
 5. Don't overdo the thanks
+6. If you address someone, use their exact username from the comment list. Do NOT invent names.
 
 === OUTPUT FORMAT ===
 Respond with JSON only:
