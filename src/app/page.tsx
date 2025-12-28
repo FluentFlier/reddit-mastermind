@@ -204,9 +204,9 @@ export default function Dashboard() {
 
   const getImportMissingFields = (preview: {
     company?: Company;
-    personas?: Persona[];
-    subreddits?: Subreddit[];
-    keywords?: Keyword[];
+    personas?: Array<Partial<Persona>>;
+    subreddits?: Array<Partial<Subreddit>>;
+    keywords?: Array<Partial<Keyword>>;
   }): string[] => {
     const missing: string[] = [];
     if (!preview.company?.name?.trim()) missing.push('Company name');
@@ -221,11 +221,30 @@ export default function Dashboard() {
     return result.posts.find((post) => post.id === selectedPostId) || null;
   }, [result, selectedPostId]);
 
-  const filteredComments = useMemo(() => {
+const filteredComments = useMemo(() => {
     if (!result) return [] as Comment[];
     const allowedPostIds = new Set(filteredPosts.map((p) => p.id));
-    return result.comments.filter((c) => allowedPostIds.has(c.postId));
+  return result.comments.filter((c) => allowedPostIds.has(c.postId));
   }, [result, filteredPosts]);
+
+  const debugImportPayload = (payload: {
+    company?: Company;
+    personas?: Persona[];
+    subreddits?: Subreddit[];
+    keywords?: Keyword[];
+    posts?: Post[];
+    comments?: Comment[];
+  }) => {
+    if (process.env.NODE_ENV !== 'development') return;
+    console.log('[Import payload]', {
+      company: payload.company?.name,
+      personas: payload.personas?.length,
+      subreddits: payload.subreddits?.length,
+      keywords: payload.keywords?.length,
+      posts: payload.posts?.length,
+      comments: payload.comments?.length,
+    });
+  };
 
   const cmdkActions = useMemo(() => {
     const base = [
@@ -345,6 +364,7 @@ export default function Dashboard() {
       throw new Error('Company name is required to import.');
     }
 
+    debugImportPayload(payload);
     const saved = scope === 'global'
       ? await upsertCompanyGlobal(companyPayload)
       : await upsertCompany(companyPayload, userExternalId);
@@ -374,16 +394,16 @@ export default function Dashboard() {
 
     if (payload.posts?.length) {
       const personaMap = new Map(
-        savedPersonas.map((p) => [p.username, p])
+        savedPersonas.map((p) => [p.username.toLowerCase(), p])
       );
       const subredditMap = new Map(
-        savedSubreddits.map((s) => [s.name, s])
+        savedSubreddits.map((s) => [s.name.toLowerCase(), s])
       );
 
       const missingMappings: string[] = [];
       const postsToSave = payload.posts.map((post) => {
-        const persona = personaMap.get(post.personaUsername);
-        const subreddit = subredditMap.get(post.subredditName);
+        const persona = personaMap.get(post.personaUsername.toLowerCase());
+        const subreddit = subredditMap.get(post.subredditName.toLowerCase());
         if (!persona) missingMappings.push(`persona:${post.personaUsername}`);
         if (!subreddit) missingMappings.push(`subreddit:${post.subredditName}`);
         return {
@@ -399,7 +419,7 @@ export default function Dashboard() {
       }
 
       const commentsToSave = (payload.comments || []).map((comment) => {
-        const persona = personaMap.get(comment.personaUsername);
+        const persona = personaMap.get(comment.personaUsername.toLowerCase());
         return {
           ...comment,
           personaId: persona?.id || '',
@@ -417,22 +437,20 @@ export default function Dashboard() {
   }
 
   async function seedSlideforge(userExternalId: string) {
-    const existing = await findCompanyByName('Slideforge');
-    if (existing) return existing;
+    try {
+      const existing = await findCompanyByName('Slideforge');
+      if (existing) return existing;
+    } catch {
+      // ignore lookup errors (RLS)
+    }
 
     const response = await fetch('/api/seed-slideforge');
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || 'Failed to seed Slideforge');
     }
-    try {
-      const saved = await persistImportBundle(data.data, userExternalId, 'global');
-      return saved;
-    } catch (err) {
-      console.warn('Global seed blocked, falling back to user seed.', err);
-      const saved = await persistImportBundle(data.data, userExternalId, 'user');
-      return saved;
-    }
+    const saved = await persistImportBundle(data.data, userExternalId, 'user');
+    return saved;
   }
 
   async function loadCompanies(userExternalId: string) {
@@ -724,6 +742,21 @@ export default function Dashboard() {
     }
 
     if (!mergedPreview.company) {
+      try {
+        const seedRes = await fetch('/api/seed-slideforge');
+        const seedData = await seedRes.json();
+        if (seedData.success) {
+          mergedPreview = mergeImportPreview(mergedPreview, seedData.data);
+        }
+      } catch {
+        // ignore seed helper
+      }
+    }
+
+    if (
+      mergedPreview.company?.name?.toLowerCase() === 'slideforge' &&
+      (!mergedPreview.keywords || mergedPreview.keywords.length === 0)
+    ) {
       try {
         const seedRes = await fetch('/api/seed-slideforge');
         const seedData = await seedRes.json();
@@ -1366,7 +1399,16 @@ export default function Dashboard() {
                       </div>
                     )}
                     {result?.qualityReport && (
-                      <QualityPanel report={result.qualityReport} />
+                      <QualityPanel
+                        report={result.qualityReport}
+                        postsCount={result.posts.length}
+                        commentsCount={result.comments.length}
+                        weekNumber={result.weekNumber}
+                        onApproveAll={handleApproveAll}
+                        onRegenerateLowQuality={handleRegenerateLowQuality}
+                        onRegenerate={() => handleGenerate(0)}
+                        onGenerateNext={() => handleGenerate(1)}
+                      />
                     )}
                   </div>
                 </div>
@@ -2007,17 +2049,17 @@ export default function Dashboard() {
                       const keywordsToSave =
                         importPreview.keywords?.length ? importPreview.keywords : fallbackKeyword;
 
-                      const stillMissing = getImportMissingFields({
-                        company: companyPayload as Company,
-                        personas: personasToSave,
-                        subreddits: subredditsToSave,
-                        keywords: keywordsToSave,
-                      });
-                      if (stillMissing.length) {
-                        setImportMissing(stillMissing);
-                        setImportStatus('Please fill missing fields before importing.');
-                        return;
-                      }
+                    const stillMissing = getImportMissingFields({
+                      company: companyPayload as Company,
+                      personas: personasToSave,
+                      subreddits: subredditsToSave,
+                      keywords: keywordsToSave,
+                    });
+                    if (stillMissing.length) {
+                      setImportMissing(stillMissing);
+                      setImportStatus(`Missing fields: ${stillMissing.join(', ')}`);
+                      return;
+                    }
 
                       const saved = await persistImportBundle(
                         {
@@ -2039,7 +2081,13 @@ export default function Dashboard() {
                       }
                       setImportStatus('Imported and saved to Supabase.');
                     } catch (err) {
-                      setImportStatus(err instanceof Error ? err.message : 'Import failed');
+                      const msg =
+                        err instanceof Error
+                          ? err.message
+                          : typeof err === 'string'
+                          ? err
+                          : JSON.stringify(err);
+                      setImportStatus(`Import failed: ${msg || 'Unknown error'}`);
                     }
                   }}
                   className="rounded-xl bg-[#f97316] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ea580c]"
@@ -2197,6 +2245,7 @@ function parseCompanyInfoCSV(text: string) {
   const subreddits: Subreddit[] = [];
   const keywords: Keyword[] = [];
   let personaMode = false;
+  let keywordMode = false;
 
   for (const row of rows) {
     if (row.length < 2) continue;
@@ -2204,8 +2253,38 @@ function parseCompanyInfoCSV(text: string) {
     const value = row[1];
     if (!key) continue;
 
+    if (key.toLowerCase() === 'keyword_id') {
+      keywordMode = true;
+      continue;
+    }
+
     if (key.toLowerCase() === 'username' && value.toLowerCase().includes('info')) {
       personaMode = true;
+      continue;
+    }
+
+    if (keywordMode) {
+      if (!key || !value) continue;
+      keywords.push({
+        id: undefined as any,
+        companyId: '',
+        keyword: value,
+        category: 'discovery',
+        priority: 3,
+      });
+      continue;
+    }
+
+    if (key.includes('_') && value.toLowerCase().startsWith('i am')) {
+      personas.push({
+        id: undefined as any,
+        companyId: '',
+        username: key,
+        bio: value,
+        voiceTraits: '',
+        expertise: [],
+        postingStyle: 'balanced',
+      });
       continue;
     }
 
