@@ -1,0 +1,14 @@
+.DS_Store
+.venv_pdf/
+node_modules/
+.next/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+*.log
+*.zip
+
+# clerk configuration (can include secrets)
+/.clerk/

@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  transition: background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.2s ease,
+              box-shadow 0.3s ease;
+}
+
+:root {
+  --foreground-rgb: 10, 10, 10;
+  --background-rgb: 250, 250, 250;
+}
+
+.dark {
+  --foreground-rgb: 250, 250, 250;
+  --background-rgb: 10, 10, 15;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9cdd4;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aeb4be;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2a2f3a;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3a4150;
+}
+
+/* Reddit-style thread lines */
+.thread-line {
+  @apply border-l-2 border-white/20 ml-4 pl-4;
+}
+
+/* Calendar cell hover */
+.calendar-cell:hover {
+  @apply bg-white/5 cursor-pointer;
+}
+
+/* Quality score colors */
+.quality-high {
+  @apply text-orange-500 bg-orange-500/10;
+}
+
+.quality-medium {
+  @apply text-slate-500 bg-slate-500/10;
+}
+
+.quality-low {
+  @apply text-slate-500 bg-slate-500/10;
+}
+
+/* Persona avatar colors */
+.persona-avatar {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm;
+}
+
+.dashboard-skin {
+  @apply rounded-[32px] bg-white p-6 shadow-sm;
+}
+
+.dark .dashboard-skin {
+  @apply border border-white/10 bg-[#18181b] shadow-none;
+}
+
+.btn-shimmer {
+  background-image: linear-gradient(110deg, #f97316 0%, #fb923c 35%, #f97316 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 0% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+
+.dashboard-skin button {
+  @apply transition;
+}
