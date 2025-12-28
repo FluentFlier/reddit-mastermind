@@ -678,7 +678,7 @@ const filteredComments = useMemo(() => {
           }
         : preferences;
 
-      let firstOutput: PlannerOutput | null = null;
+      const outputs: PlannerOutput[] = [];
 
       for (let i = 0; i < Math.max(weeksToGenerate, 1); i += 1) {
         const weekStartDate = addWeeks(requestedWeekStart, i);
@@ -717,9 +717,8 @@ const filteredComments = useMemo(() => {
           debug: data.data.debug,
         };
 
-        if (!firstOutput) {
-          firstOutput = output;
-          setResult(output);
+        outputs.push(output);
+        if (outputs.length === 1) {
           setLastGenerationMode(data.data?.meta?.mode || null);
         }
 
@@ -727,6 +726,16 @@ const filteredComments = useMemo(() => {
           const { saveCalendar } = await import('@/lib/supabase/client');
           await saveCalendar(activeCompanyId, output);
         }
+      }
+
+      if (outputs.length) {
+        const merged: PlannerOutput = {
+          ...outputs[0],
+          posts: outputs.flatMap((item) => item.posts),
+          comments: outputs.flatMap((item) => item.comments),
+          generatedAt: new Date(),
+        };
+        setResult(merged);
       }
 
       setActionMessage(
