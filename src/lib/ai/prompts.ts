@@ -60,13 +60,13 @@ NOTE: Do NOT mention ${company.name} directly in the post. The goal is to create
 4. Use casual language appropriate for Reddit
 5. Include minor imperfections (contractions, informal phrasing)
 6. Title should be natural, not clickbait
-7. Body should be 2-5 sentences max
+7. Body should be 2-4 sentences max
 8. NEVER mention the company name
 9. Don't be too polished - Reddit users are suspicious of overly professional posts
 ${preferences?.minPostLength ? `10. Minimum post length: ${preferences.minPostLength} characters` : ''}
-${preferences?.maxPostLength ? `11. Maximum post length: ${preferences.maxPostLength} characters` : ''}
+${preferences?.maxPostLength ? `11. Hard max: ${preferences.maxPostLength} characters (stop early).` : ''}
 ${preferences?.bannedPhrases?.length ? `12. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
-${preferences?.campaignBrief ? `13. Campaign brief: ${preferences.campaignBrief}` : ''}
+${preferences?.campaignBrief ? `13. Campaign brief: ${preferences.campaignBrief} (treat as a short hint, do not expand it).` : ''}
 ${preferences?.postGuidelines ? `14. Additional guidance: ${preferences.postGuidelines}` : ''}
 
 === OUTPUT FORMAT ===
@@ -171,9 +171,9 @@ ${persona.postingStyle === 'gives_answers'
   : '10. Share your own experience or perspective on the topic'}
 ${forceDisagreement ? '11. Include a mild disagreement or nuance (e.g., "depends", "in my case", "but").' : ''}
 ${preferences?.minCommentLength ? `12. Minimum length: ${preferences.minCommentLength} characters` : ''}
-${preferences?.maxCommentLength ? `13. Maximum length: ${preferences.maxCommentLength} characters` : ''}
+${preferences?.maxCommentLength ? `13. Hard max: ${preferences.maxCommentLength} characters (stop early).` : ''}
 ${preferences?.bannedPhrases?.length ? `14. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
-${preferences?.campaignBrief ? `15. Campaign brief: ${preferences.campaignBrief}` : ''}
+${preferences?.campaignBrief ? `15. Campaign brief: ${preferences.campaignBrief} (treat as a short hint, do not expand it).` : ''}
 ${preferences?.commentGuidelines ? `16. Additional guidance: ${preferences.commentGuidelines}` : ''}
 
 === OUTPUT FORMAT ===
@@ -226,6 +226,7 @@ Write a brief follow-up comment as the OP. You might:
 4. Natural, casual tone
 5. Don't overdo the thanks
 6. If you address someone, use their exact username from the comment list. Do NOT invent names.
+7. Keep it to 1-2 sentences; be concise.
 
 === OUTPUT FORMAT ===
 Respond with JSON only:

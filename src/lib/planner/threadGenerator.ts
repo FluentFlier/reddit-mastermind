@@ -359,6 +359,10 @@ async function generateComments(config: {
       }
     }
 
+    if (preferences?.maxCommentLength && finalText.length > preferences.maxCommentLength) {
+      finalText = clampToLength(finalText, preferences.maxCommentLength);
+    }
+
     comments.push({
       id: generateCommentId(),
       postId: post.id,
@@ -636,6 +640,10 @@ async function sanitizePostBody(
     if (revised) next = revised;
   }
 
+  if (preferences?.maxPostLength && next.length > preferences.maxPostLength) {
+    next = clampToLength(next, preferences.maxPostLength);
+  }
+
   return next;
 }
 
@@ -659,6 +667,25 @@ function isCommentLowQuality(
     return true;
   }
   return false;
+}
+
+function clampToLength(text: string, maxLen: number): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLen) return trimmed;
+  const sentences = trimmed.split(/(?<=[.!?])\s+/).filter(Boolean);
+  let result = '';
+  for (const sentence of sentences) {
+    const next = result ? `${result} ${sentence}` : sentence;
+    if (next.length > maxLen) break;
+    result = next;
+  }
+  if (result && result.length <= maxLen) return result;
+  let sliced = trimmed.slice(0, maxLen).trim();
+  const lastPunct = Math.max(sliced.lastIndexOf('.'), sliced.lastIndexOf('!'), sliced.lastIndexOf('?'));
+  if (lastPunct > Math.max(30, Math.floor(maxLen * 0.5))) {
+    sliced = sliced.slice(0, lastPunct + 1);
+  }
+  return sliced.trim();
 }
 
 async function removeCompanyMention(text: string, companyName: string): Promise<string | null> {
