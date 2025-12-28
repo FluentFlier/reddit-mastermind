@@ -302,6 +302,7 @@ export interface GenerateCalendarResponse {
 export interface GenerationPreferences {
   allowProductMention?: boolean;
   productMentionCount?: number;
+  antiPromoChecks?: boolean;
   bannedPhrases?: string[];
   postGuidelines?: string;
   commentGuidelines?: string;

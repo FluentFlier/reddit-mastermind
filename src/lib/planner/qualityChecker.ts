@@ -22,7 +22,7 @@ export interface QualityCheckConfig {
   company: Company;
   subreddits?: Subreddit[];
   constraints?: PlannerConstraints;
-  allowProductMention?: boolean;
+  antiPromoChecks?: boolean;
 }
 
 export interface QualityCheckResult {
@@ -34,7 +34,7 @@ export interface QualityCheckResult {
  * Performs quality checks on all generated threads
  */
 export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
-  const { threads, company, subreddits, constraints, allowProductMention } = config;
+  const { threads, company, subreddits, constraints, antiPromoChecks } = config;
   
   const issues: QualityIssue[] = [];
   const warnings: string[] = [];
@@ -49,7 +49,7 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
   issues.push(...checkPersonaBalance(threads, constraints));
   issues.push(...checkSubredditRules(threads, company, subreddits));
   
-  if (!allowProductMention) {
+  if (antiPromoChecks !== false) {
     const promoCheck = checkPromotionalContent(threads, company);
     promoCheckResult.issues = promoCheck.issues;
     promoCheckResult.warnings = promoCheck.warnings;
@@ -82,7 +82,7 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
     }
   }
 
-  const warningsByPostId = allowProductMention ? {} : promoCheckResult.warningsByPostId;
+  const warningsByPostId = antiPromoChecks === false ? {} : promoCheckResult.warningsByPostId;
 
   return {
     validatedThreads: threads,

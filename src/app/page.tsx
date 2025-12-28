@@ -100,6 +100,7 @@ export default function Dashboard() {
   const [preferences, setPreferences] = useState<GenerationPreferences>({
     allowProductMention: true,
     productMentionCount: 1,
+    antiPromoChecks: true,
     bannedPhrases: ['best ever', 'life changing', 'game changer'],
     minCommentLength: 40,
     maxCommentLength: 240,
@@ -670,8 +671,6 @@ const filteredComments = useMemo(() => {
       const effectivePreferences: GenerationPreferences = strictQualityMode
         ? {
             ...preferences,
-            allowProductMention: false,
-            productMentionCount: 0,
             requireDisagreement: true,
             minCommentLength: Math.max(preferences.minCommentLength || 0, 80),
             minPostLength: Math.max(preferences.minPostLength || 0, 180),
@@ -894,8 +893,6 @@ const filteredComments = useMemo(() => {
       const basePreferences: GenerationPreferences = strictQualityMode
         ? {
             ...preferences,
-            allowProductMention: false,
-            productMentionCount: 0,
             requireDisagreement: true,
             minCommentLength: Math.max(preferences.minCommentLength || 0, 80),
             minPostLength: Math.max(preferences.minPostLength || 0, 180),
@@ -1337,7 +1334,7 @@ const filteredComments = useMemo(() => {
                       <p className={labelClass}>Quality guardrails</p>
                       <h3 className={titleClass}>Strict AI quality mode</h3>
                       <p className="mt-2 text-sm text-slate-500 dark:text-white/60">
-                        Stronger anti-promo, longer comments, and forced disagreement for realism.
+                        Longer comments and forced disagreement for realism.
                       </p>
                     </div>
                     <button
@@ -1346,11 +1343,39 @@ const filteredComments = useMemo(() => {
                         strictQualityMode
                           ? 'bg-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.4)]'
                           : 'bg-slate-200 dark:bg-white/10'
-                      }`}
+                        }`}
                     >
                       <span
                         className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
                           strictQualityMode ? 'left-7' : 'left-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl border border-[#e5e5e5] bg-white px-4 py-3 text-sm text-slate-600 dark:border-white/10 dark:bg-[#18181b] dark:text-white/70">
+                    <div>
+                      <div className="text-sm font-semibold text-slate-900 dark:text-white">Anti‑promo checks</div>
+                      <div className="mt-1 text-xs text-slate-500 dark:text-white/60">
+                        Warns if a thread feels too promotional.
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        setPreferences((prev) => ({
+                          ...prev,
+                          antiPromoChecks: prev.antiPromoChecks === false ? true : false,
+                        }))
+                      }
+                      className={`relative h-7 w-14 rounded-full transition ${
+                        preferences.antiPromoChecks !== false
+                          ? 'bg-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.35)]'
+                          : 'bg-slate-200 dark:bg-white/10'
+                      }`}
+                      aria-label="Toggle anti-promo"
+                    >
+                      <span
+                        className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
+                          preferences.antiPromoChecks !== false ? 'left-7' : 'left-1'
                         }`}
                       />
                     </button>

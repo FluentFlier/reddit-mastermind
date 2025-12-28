@@ -153,7 +153,7 @@ export async function generateWeeklyCalendar(
     company: input.company,
     subreddits: input.subreddits,
     constraints,
-    allowProductMention: input.preferences?.allowProductMention ?? false,
+    antiPromoChecks: input.preferences?.antiPromoChecks ?? true,
   });
   
   debug(`   Overall score: ${qualityResult.report.overallScore}/10`);
@@ -187,16 +187,16 @@ export async function generateWeeklyCalendar(
 
         const strictPreferences = {
           ...input.preferences,
-          allowProductMention: false,
+          antiPromoChecks: true,
           requireDisagreement: true,
           commentGuidelines: [
             input.preferences?.commentGuidelines,
             'Include at least one mild disagreement or nuance.',
-            'Avoid promotional language.',
+            'Avoid overly promotional language. If you mention the product, keep it subtle and secondary.',
           ].filter(Boolean).join(' '),
           bannedPhrases: Array.from(new Set([
             ...(input.preferences?.bannedPhrases || []),
-            input.company.name,
+            ...(input.preferences?.allowProductMention === false ? [input.company.name] : []),
           ])),
         };
 
@@ -217,7 +217,7 @@ export async function generateWeeklyCalendar(
         company: input.company,
         subreddits: input.subreddits,
         constraints,
-        allowProductMention: input.preferences?.allowProductMention ?? false,
+        antiPromoChecks: input.preferences?.antiPromoChecks ?? true,
       });
       if (qualityResult.report.issues.length === 0 && qualityResult.report.warnings.length === 0) {
         break;
