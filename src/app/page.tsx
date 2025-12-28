@@ -1369,7 +1369,7 @@ const filteredComments = useMemo(() => {
                       onClick={() => setStrictQualityMode((prev) => !prev)}
                       className={`relative h-7 w-14 rounded-full transition ${
                         strictQualityMode
-                          ? 'bg-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.4)]'
+                          ? 'bg-[#f97316]/90 shadow-[0_0_20px_rgba(249,115,22,0.35)]'
                           : 'bg-slate-200 dark:bg-white/10'
                         }`}
                     >
@@ -1396,7 +1396,7 @@ const filteredComments = useMemo(() => {
                       }
                       className={`relative h-7 w-14 rounded-full transition ${
                         preferences.antiPromoChecks !== false
-                          ? 'bg-[#f97316]/90'
+                          ? 'bg-[#f97316]/90 shadow-[0_0_20px_rgba(249,115,22,0.25)]'
                           : 'bg-slate-200 dark:bg-white/10'
                       }`}
                       aria-label="Toggle anti-promo"
