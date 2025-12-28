@@ -270,33 +270,3 @@ export const SUBREDDIT_PRESETS: Record<string, Partial<PlannerConstraints>> = {
 
 Edit `src/lib/ai/prompts.ts` to customize how content is generated.
 
-## 🚨 Important Considerations
-
-### Ethical Guidelines
-
-- This tool is for **content planning**, not automated posting
-- Always have humans review content before publishing
-- Respect subreddit rules and community norms
-- Consider disclosure when appropriate
-
-### Rate Limits
-
-- OpenAI: Respects API rate limits
-- Reddit API: Not included (this is a planner only)
-- Supabase: Standard free tier limits apply
-
-## 📝 License
-
-MIT License - see LICENSE file for details.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
-
----
-
-Built with ❤️ for the Reddit marketing community
