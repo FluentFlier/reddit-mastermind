@@ -1368,7 +1368,7 @@ const filteredComments = useMemo(() => {
                       }
                       className={`relative h-7 w-14 rounded-full transition ${
                         preferences.antiPromoChecks !== false
-                          ? 'bg-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.35)]'
+                          ? 'bg-[#f97316]/90'
                           : 'bg-slate-200 dark:bg-white/10'
                       }`}
                       aria-label="Toggle anti-promo"
@@ -2441,9 +2441,15 @@ function parseContentCalendarCSV(text: string) {
     };
 
     if (mode === 'posts') {
-      const id = get('post_id');
-      if (!id) continue;
-      const scheduledAt = new Date(get('timestamp'));
+        const id = get('post_id');
+        if (!id) continue;
+        const scheduledAt = new Date(get('timestamp'));
+        const statusValue = get('status')?.toLowerCase();
+      const normalizedStatus: Post['status'] = statusValue === 'posted'
+        ? 'approved'
+        : statusValue === 'approved' || statusValue === 'draft'
+          ? (statusValue as Post['status'])
+          : 'draft';
       posts.push({
         id,
         companyId: '',
@@ -2460,8 +2466,8 @@ function parseContentCalendarCSV(text: string) {
           .map((s) => s.trim())
           .filter(Boolean),
         threadType: 'question',
-        status: 'draft',
-      });
+          status: normalizedStatus,
+        });
     }
 
     if (mode === 'comments') {
