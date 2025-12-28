@@ -1,78 +1,52 @@
-# Reddit Mastermind 🧠
+# Reddit Mastermind
 
-An AI-powered Reddit content calendar planner that generates authentic multi-persona conversations to drive organic visibility.
+AI‑powered Reddit content planning that turns a company brief, personas, and subreddit targets into a realistic weekly calendar of posts + threaded conversations.
 
-![Reddit Mastermind](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?style=flat-square&logo=supabase)
+Built for teams who care about narrative quality, not just volume.
 
-## 🎯 What It Does
+---
 
-Reddit Mastermind takes your company info, personas, target subreddits, and keywords, then generates a complete weekly content calendar with:
+## Why it stands out
 
-- **Scheduled Posts** - Distributed across the week with optimal timing
-- **Simulated Conversations** - Multiple personas interacting naturally
-- **Quality Scoring** - Each thread is evaluated for authenticity
-- **Constraint Enforcement** - No overposting, no suspicious patterns
+- **Multi‑persona realism**: OP + commenters are assigned with constraints that prevent obvious coordination.
+- **Quality guardrails**: Anti‑promo checks, voice consistency, timing realism, and duplication detection.
+- **Calendar‑first workflow**: View weeks at a glance, drill into threads, and edit in context.
+- **Seeded demo data**: Slideforge is auto‑seeded so reviewers can explore immediately after login.
 
-## 📸 Sample Output
+---
 
-Based on the SlideForge example:
+## Product tour (90 seconds)
 
-| Day | Subreddit | Post | OP | Commenters |
-|-----|-----------|------|-----|------------|
-| Mon | r/PowerPoint | "Best AI Presentation Maker?" | riley_ops | jordan_consults, emily_econ |
-| Wed | r/ClaudeAI | "Slideforge VS Claude for slides?" | riley_ops | jordan_consults, alex_sells, priya_pm |
-| Thu | r/Canva | "Slideforge vs Canva for slides?" | riley_ops | jordan_consults, emily_econ, alex_sells |
+1. **Login** → see the full dashboard (no empty state).
+2. **Overview** → calendar + thread preview.
+3. **Generate** → multi‑week calendars with quality scoring.
+4. **Edit** → inline edits for posts and comments.
+5. **Import** → bring CSVs (company + calendar) and persist to Supabase.
 
-## 🏗 Architecture
+---
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PLANNING ALGORITHM                            │
-├─────────────────────────────────────────────────────────────────┤
-│  1. SLOT ALLOCATION     → Distribute posts across the week      │
-│  2. SUBREDDIT MATCHING  → Match keywords to subreddits          │
-│  3. PERSONA ASSIGNMENT  → Assign OPs and commenters             │
-│  4. THREAD GENERATION   → AI-powered content creation           │
-│  5. QUALITY ASSURANCE   → Validate and score everything         │
-└─────────────────────────────────────────────────────────────────┘
-```
+## Tech stack
 
-## 🚀 Quick Start
+- Next.js 14 (App Router) + TypeScript
+- Tailwind CSS + Framer Motion
+- Clerk (Auth) + Supabase (Persistence)
+- LLM providers: Cerebras / Gemini (optional mock mode)
 
-### Prerequisites
+---
 
-- Node.js 18+
-- npm or yarn
-- LLM API key (Cerebras or Gemini; optional when using mock mode)
-- Supabase account (optional - works without database)
-
-### Installation
+## Quick start
 
 ```bash
-# Clone the repo
-git clone https://github.com/yourusername/reddit-mastermind.git
-cd reddit-mastermind
-
-# Install dependencies
 npm install
-
-# Set up environment variables
 cp .env.example .env.local
-# Edit .env.local with your keys
-
-# Run development server
 npm run dev
 ```
 
-### Environment Variables
+### Environment variables
 
 ```env
-# LLM provider
+# LLM provider (optional for mock mode)
 LLM_PROVIDER=cerebras
-
-# Cerebras (OpenAI-compatible)
 CEREBRAS_API_KEY=your_cerebras_api_key
 CEREBRAS_MODEL=llama-3.3-70b
 
@@ -80,193 +54,67 @@ CEREBRAS_MODEL=llama-3.3-70b
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-2.5-flash
 
-# Optional: Supabase for persistence
+# Supabase (recommended for persistence)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Optional: Enable mock mode (no API calls)
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+
+# Optional
 MOCK_AI=true
 ```
 
-## ✅ Production Deploy Checklist
+---
 
-1. **Do not commit** `.env.local` or any secrets.
-2. Configure production environment variables in your host (Vercel/Render/etc.):
-   - `LLM_PROVIDER`
-   - `CEREBRAS_API_KEY` (if using Cerebras)
-   - `CEREBRAS_MODEL`
-   - `GEMINI_API_KEY` (if using Gemini)
-   - `GEMINI_MODEL`
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. Run database migrations in Supabase (`supabase/schema.sql`).
-4. Optional: enable RLS + policies before going live.
-
-## 📁 Project Structure
+## How the planner works (high‑level)
 
 ```
-reddit-mastermind/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── page.tsx            # Main dashboard
-│   │   ├── calendar/           # Calendar view
-│   │   └── api/
-│   │       └── generate/       # Generation endpoint
-│   │
-│   ├── lib/
-│   │   ├── planner/            # 🧠 CORE ALGORITHM
-│   │   │   ├── index.ts        # Main orchestrator
-│   │   │   ├── slotAllocator.ts
-│   │   │   ├── subredditMatcher.ts
-│   │   │   ├── personaAssigner.ts
-│   │   │   ├── threadGenerator.ts
-│   │   │   ├── qualityChecker.ts
-│   │   │   └── constraints.ts
-│   │   │
-│   │   ├── ai/                 # OpenAI integration
-│   │   │   ├── openai.ts
-│   │   │   └── prompts.ts
-│   │   │
-│   │   ├── supabase/           # Database
-│   │   └── utils/              # Utilities
-│   │
-│   ├── components/             # React components
-│   ├── types/                  # TypeScript types
-│   └── tests/                  # Unit tests
-│
-└── supabase/
-    └── schema.sql              # Database schema
+1) Slot Allocation     → distribute posts across the week
+2) Subreddit Matching  → map keywords → subreddit fit
+3) Persona Assignment  → OP + commenters based on constraints
+4) Thread Generation   → AI writes post + comments
+5) Quality Scoring     → authenticity + promo checks + timing
 ```
 
-## 🔧 Core Algorithm
+Key guardrails:
+- No overposting in the same subreddit
+- Max posts per persona
+- Avoid repeated persona pairings
+- Realistic comment delays
 
-### Constraint Rules
+---
 
-The planner enforces these rules to ensure natural-looking content:
+## Project structure (high‑signal)
 
-| Constraint | Default | Purpose |
-|------------|---------|---------|
-| Max posts per subreddit/week | 2 | Prevent overposting |
-| Max posts per persona/week | 2 | Distribute authorship |
-| Max personas per thread | 3 | Avoid obvious coordination |
-| Min delay before first comment | 15 min | Look organic |
-| No repeated pairings/week | ✓ | Prevent pattern detection |
-
-### Thread Types
-
-The system determines thread type based on keywords:
-
-- **Question** - "Best...", "How to...", "What is..."
-- **Advice** - "Help with...", "Tips for...", "Recommend..."
-- **Story** - "Just discovered...", "My experience with..."
-- **Discussion** - "What do you think about...", "Thoughts on..."
-
-### Quality Scoring
-
-Each thread is scored 0-10 based on:
-
-- **Naturalness** - Content length and style
-- **Engagement** - Comment count and variety
-- **Subtlety** - Promotional content detection
-- **Timing** - Realistic comment delays
-
-## 📊 API Reference
-
-### POST /api/generate
-
-Generate a weekly content calendar.
-
-**Request:**
-```json
-{
-  "company": {
-    "id": "company-123",
-    "name": "Slideforge",
-    "description": "AI presentation tool..."
-  },
-  "personas": [...],
-  "subreddits": [...],
-  "keywords": [...],
-  "postsPerWeek": 3,
-  "weekStartDate": "2024-01-08T00:00:00Z"
-}
+```
+src/
+  app/                  # Next.js App Router
+  components/           # UI + calendar/thread views
+  lib/
+    planner/            # Core planning algorithm
+    ai/                 # Prompting + LLM calls
+    supabase/           # Persistence layer
+  types/                # Shared types
+supabase/schema.sql     # DB schema
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "posts": [...],
-    "comments": [...],
-    "qualityReport": {
-      "overallScore": 8.5,
-      "issues": [],
-      "warnings": [],
-      "suggestions": []
-    },
-    "weekNumber": 2,
-    "generatedAt": "2024-01-05T12:00:00Z"
-  }
-}
-```
+---
 
-## 🧪 Testing
+## Production checklist
 
-```bash
-# Run all tests
-npm test
+1. Add env vars in your host (Vercel/Render/etc.).
+2. Run `supabase/schema.sql` in Supabase SQL Editor.
+3. Enable RLS + policies (optional but recommended).
+4. Verify `/api/seed-slideforge` succeeds for demo data.
 
-# Run tests in watch mode
-npm run test:watch
+---
 
-# Run with coverage
-npm run test:coverage
-```
+## About
 
-### Test Categories
+Built by **Anirudh Manjesh** as a full‑stack product + AI systems project.
 
-- **Slot Allocation** - Verifies time distribution
-- **Subreddit Matching** - Verifies keyword-to-subreddit logic
-- **Persona Assignment** - Verifies constraint enforcement
-- **Quality Checking** - Verifies issue detection
+If you’re reviewing for hiring: this repo demonstrates end‑to‑end product thinking (UX, LLM quality controls, persistence, and deploy readiness), not just a model wrapper.
 
-## 🗄 Database Setup
-
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Run the schema file in SQL Editor:
-
-```sql
--- Run supabase/schema.sql in Supabase SQL Editor
-```
-
-3. Add your Supabase credentials to `.env.local`
-
-## 🎨 Customization
-
-### Adding New Constraints
-
-Edit `src/lib/planner/constraints.ts`:
-
-```typescript
-export const DEFAULT_CONSTRAINTS: PlannerConstraints = {
-  maxPostsPerSubredditPerWeek: 2,  // Change this
-  // ... other constraints
-};
-```
-
-### Custom Subreddit Rules
-
-```typescript
-export const SUBREDDIT_PRESETS: Record<string, Partial<PlannerConstraints>> = {
-  'r/consulting': {
-    maxPostsPerSubredditPerWeek: 1,  // More strict
-    maxPromoScoreAllowed: 4,
-  },
-};
-```
-
-### Custom Prompts
-
-Edit `src/lib/ai/prompts.ts` to customize how content is generated.
-
+If you want a quick demo walk‑through video or a more technical deep‑dive, I can add it.
