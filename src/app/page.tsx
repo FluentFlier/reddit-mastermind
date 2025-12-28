@@ -441,20 +441,30 @@ const filteredComments = useMemo(() => {
   }
 
   async function seedSlideforge(userExternalId: string) {
-    try {
-      const existing = await findCompanyByName('Slideforge');
-      if (existing) return existing;
-    } catch {
-      // ignore lookup errors (RLS)
-    }
-
     const response = await fetch('/api/seed-slideforge');
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || 'Failed to seed Slideforge');
     }
-    const saved = await persistImportBundle(data.data, userExternalId, 'user');
-    return saved;
+    let existing: Company | null = null;
+    try {
+      existing = await findCompanyByName('Slideforge');
+    } catch {
+      // ignore lookup errors (RLS)
+    }
+
+    const payload = {
+      ...data.data,
+      company: data.data.company
+        ? { ...data.data.company, id: existing?.id || data.data.company.id, name: 'Slideforge' }
+        : { id: existing?.id, name: 'Slideforge' },
+    };
+
+    try {
+      return await persistImportBundle(payload, userExternalId, 'global');
+    } catch {
+      return await persistImportBundle(payload, userExternalId, 'user');
+    }
   }
 
   async function loadCompanies(userExternalId: string) {
@@ -480,6 +490,23 @@ const filteredComments = useMemo(() => {
         setKeywords(sampleKeywords);
         setShouldAutoGenerate(true);
         return;
+      }
+    }
+    const hasSlideforge = list.some((company) => company.name.toLowerCase() === 'slideforge');
+    if (!hasSlideforge) {
+      try {
+        await seedSlideforge(userExternalId);
+        const refreshed = await listCompanies(userExternalId);
+        if (refreshed.length) {
+          setCompanies(refreshed);
+          setActiveCompanyId(refreshed[0].id);
+          setCompanyDraft(refreshed[0]);
+          setConstraints(refreshed[0].constraints || DEFAULT_CONSTRAINTS);
+          setShouldAutoGenerate(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Slideforge global seed failed.', err);
       }
     }
     setCompanies(list);
