@@ -15,7 +15,7 @@ Built for teams who care about narrative quality, not just volume.
 
 ---
 
-## Product tour (90 seconds)
+## Product tour
 
 1. **Login** → see the full dashboard (no empty state).
 2. **Overview** → calendar + thread preview.
