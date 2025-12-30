@@ -61,8 +61,6 @@ import {
   Hash,
   History,
   MessagesSquare,
-  PanelLeftClose,
-  PanelLeftOpen,
   ShieldCheck,
   Settings2,
   Sliders,
@@ -131,7 +129,6 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'company' | 'personas' | 'subreddits' | 'keywords' | 'preferences' | 'constraints' | 'import' | 'history'>('overview');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [importPreview, setImportPreview] = useState<{
     company?: Company;
     personas?: Persona[];
@@ -180,23 +177,6 @@ export default function Dashboard() {
     category: '',
     priority: 0,
   });
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const saved = window.localStorage.getItem('rm-sidebar-collapsed');
-    if (saved !== null) {
-      setIsSidebarCollapsed(saved === 'true');
-      return;
-    }
-    const defaultCollapsed = false;
-    setIsSidebarCollapsed(defaultCollapsed);
-    window.localStorage.setItem('rm-sidebar-collapsed', String(defaultCollapsed));
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem('rm-sidebar-collapsed', String(isSidebarCollapsed));
-  }, [isSidebarCollapsed]);
-
   const activeCompany = companies.find((c) => c.id === activeCompanyId) || null;
 
   useEffect(() => {
@@ -1252,51 +1232,14 @@ const filteredComments = useMemo(() => {
 
       </div>
 
-        <div className="mt-6 flex items-center justify-between rounded-2xl border border-[#e5e5e5] bg-white px-4 py-3 text-xs text-slate-500 shadow-sm dark:border-white/10 dark:bg-[#18181b] dark:text-white/60 lg:hidden">
-          <span className="uppercase tracking-[0.3em]">Sections</span>
-          <button
-            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-            className="flex items-center gap-2 rounded-full border border-[#e5e5e5] bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 shadow-sm transition hover:bg-[#f5f5f5] dark:border-white/15 dark:bg-[#18181b] dark:text-white/70 dark:hover:bg-white/10"
-          >
-            {isSidebarCollapsed ? 'Show' : 'Hide'}
-            {isSidebarCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
-          </button>
-        </div>
-
-        <div
-          className={`mt-6 grid gap-6 lg:grid-cols-[240px_1fr] ${
-            isSidebarCollapsed ? 'lg:grid-cols-[72px_1fr]' : ''
-          }`}
-        >
-          <aside
-            className={`space-y-6 rounded-2xl bg-white p-4 dark:border dark:border-white/10 dark:bg-[#0a0a0a] lg:rounded-r-none lg:border-r lg:border-[#e5e5e5] dark:lg:border-white/10 ${
-              isSidebarCollapsed ? 'hidden lg:block lg:px-3' : 'block'
-            }`}
-          >
-            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
-              <p
-                className={`text-[11px] uppercase tracking-[0.3em] text-slate-400 dark:text-white/40 ${
-                  isSidebarCollapsed ? 'hidden lg:block' : ''
-                }`}
-              >
-                Sections
-              </p>
-              <button
-                onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-                title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-[#e5e5e5] bg-white text-slate-500 shadow-sm transition hover:bg-[#f5f5f5] dark:border-white/15 dark:bg-[#18181b] dark:text-white/70 dark:hover:bg-white/10"
-              >
-                {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-              </button>
-            </div>
+        <div className="mt-6 grid gap-6 lg:grid-cols-[240px_1fr]">
+          <aside className="space-y-6 rounded-2xl bg-white p-4 dark:border dark:border-white/10 dark:bg-[#0a0a0a] lg:rounded-r-none lg:border-r lg:border-[#e5e5e5] dark:lg:border-white/10">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400 dark:text-white/40">
+              Sections
+            </p>
             {sidebarSections.map((section) => (
               <div key={section.label} className="space-y-2">
-                <p
-                  className={`text-[11px] uppercase tracking-[0.3em] text-slate-400 dark:text-white/40 ${
-                    isSidebarCollapsed ? 'hidden lg:block lg:text-center' : ''
-                  }`}
-                >
+                <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400 dark:text-white/40">
                   {section.label}
                 </p>
                 <div className="space-y-1">
@@ -1306,16 +1249,14 @@ const filteredComments = useMemo(() => {
                       <button
                         key={item.key}
                         onClick={() => setActiveTab(item.key as any)}
-                        title={item.label}
-                        aria-label={item.label}
                         className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-sm transition ${
                           activeTab === item.key
                             ? 'border-orange-200/60 bg-orange-50 text-slate-900 shadow-sm dark:border-orange-400/40 dark:bg-orange-500/10 dark:text-white'
                             : 'border-transparent text-slate-500 hover:border-[#e5e5e5] hover:bg-[#f5f5f5] dark:text-white/60 dark:hover:border-white/15 dark:hover:bg-white/5'
-                        } ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}
+                        }`}
                       >
                         <Icon className="h-4 w-4" />
-                        <span className={isSidebarCollapsed ? 'hidden lg:inline' : 'inline'}>{item.label}</span>
+                        {item.label}
                       </button>
                     );
                   })}
@@ -1324,14 +1265,10 @@ const filteredComments = useMemo(() => {
             ))}
             <button
               onClick={() => signOut({ redirectUrl: '/login' })}
-              title="Sign out"
-              aria-label="Sign out"
-              className={`flex w-full items-center gap-3 rounded-xl border border-[#e5e5e5] bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-[#e5e5e5] hover:bg-[#f5f5f5] dark:border-white/10 dark:bg-[#18181b] dark:text-white/70 dark:hover:border-white/30 dark:hover:bg-white/10 ${
-                isSidebarCollapsed ? 'justify-center px-2' : ''
-              }`}
+              className="flex w-full items-center gap-3 rounded-xl border border-[#e5e5e5] bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-[#e5e5e5] hover:bg-[#f5f5f5] dark:border-white/10 dark:bg-[#18181b] dark:text-white/70 dark:hover:border-white/30 dark:hover:bg-white/10"
             >
               <CalendarRange className="h-4 w-4" />
-              <span className={isSidebarCollapsed ? 'hidden lg:inline' : 'inline'}>Sign out</span>
+              Sign out
             </button>
           </aside>
 
