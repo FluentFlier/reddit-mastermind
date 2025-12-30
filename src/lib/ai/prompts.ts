@@ -23,8 +23,10 @@ export function buildPostPrompt(config: {
   company: Company;
   threadType: ThreadType;
   preferences?: GenerationPreferences;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }): string {
-  const { persona, subreddit, keywords, company, threadType, preferences } = config;
+  const { persona, subreddit, keywords, company, threadType, preferences, weeklyGoals, riskTolerance } = config;
   
   const keywordList = keywords.map(k => k.keyword).join(', ');
   
@@ -38,13 +40,23 @@ Expertise: ${persona.expertise.join(', ')}
 Posting Style: ${persona.postingStyle === 'asks_questions' ? 'Tends to ask questions and seek advice' : 
                  persona.postingStyle === 'gives_answers' ? 'Tends to share expertise and help others' : 
                  'Balanced - both asks and answers'}
+${persona.accountAgeDays ? `Account age: ~${persona.accountAgeDays} days` : ''}
+${persona.karma ? `Karma: ~${persona.karma}` : ''}
 
 === SUBREDDIT ===
 Posting to: ${subreddit.name}
 ${subreddit.description ? `About: ${subreddit.description}` : ''}
+${subreddit.sensitivity ? `Sensitivity: ${subreddit.sensitivity}` : ''}
+${subreddit.rules?.allowsSelfPromotion === false ? 'Rule: self-promotion is not allowed' : ''}
 
 === TARGET TOPICS ===
 Keywords to incorporate naturally: ${keywordList}
+
+=== WEEKLY GOALS ===
+${weeklyGoals?.length ? weeklyGoals.map(goal => `- ${goal}`).join('\n') : 'Not specified'}
+
+=== RISK TOLERANCE ===
+${riskTolerance || 'medium'} (lower = more conservative, higher = more experimental)
 
 === THREAD TYPE: ${threadType.toUpperCase()} ===
 ${getThreadTypeInstructions(threadType)}
@@ -122,8 +134,10 @@ export function buildCommentPrompt(config: {
   shouldMentionProduct?: boolean;
   preferences?: GenerationPreferences;
   forceDisagreement?: boolean;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }): string {
-  const { post, previousComments, persona, company, isFirstComment, shouldMentionProduct = false, preferences, forceDisagreement } = config;
+  const { post, previousComments, persona, company, isFirstComment, shouldMentionProduct = false, preferences, forceDisagreement, weeklyGoals, riskTolerance } = config;
   
   const previousContext = previousComments.length > 0
     ? `\n=== PREVIOUS COMMENTS ===\n${previousComments.map(c => 
@@ -141,11 +155,19 @@ Expertise: ${persona.expertise.join(', ')}
 Style: ${persona.postingStyle === 'gives_answers' ? 'You tend to provide helpful, substantive answers' : 
         persona.postingStyle === 'asks_questions' ? 'You relate to others and share your own experiences' : 
         'You engage naturally in discussions'}
+${persona.accountAgeDays ? `Account age: ~${persona.accountAgeDays} days` : ''}
+${persona.karma ? `Karma: ~${persona.karma}` : ''}
 
 === THE POST (by ${post.personaUsername}) ===
 Title: ${post.title}
 Body: ${post.body}
 ${previousContext}
+
+=== WEEKLY GOALS ===
+${weeklyGoals?.length ? weeklyGoals.map(goal => `- ${goal}`).join('\n') : 'Not specified'}
+
+=== RISK TOLERANCE ===
+${riskTolerance || 'medium'}
 
 === YOUR TASK ===
 ${isFirstComment 

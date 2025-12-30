@@ -78,6 +78,8 @@ export async function POST(request: NextRequest) {
       weekNumber: body.weekNumber || getWeekNumber(weekStartDate),
       preferences: body.preferences,
       constraints: body.constraints || body.company?.constraints,
+      weeklyGoals: body.weeklyGoals,
+      riskTolerance: body.riskTolerance,
     };
     
     // Generate calendar

@@ -54,6 +54,8 @@ Now Slideforge sits alongside my other rituals. My color-coded folders. My morni
     expertise: ['operations', 'startups', 'presentations', 'productivity'],
     postingStyle: 'asks_questions',
     avatarColor: '#FF6B6B',
+    accountAgeDays: 520,
+    karma: 1450,
   },
   {
     id: 'persona_jordan',
@@ -73,6 +75,8 @@ Now my workflow is this ecosystem of rituals. Notion for thinking. My cafe for c
     expertise: ['consulting', 'presentations', 'strategy', 'storytelling'],
     postingStyle: 'gives_answers',
     avatarColor: '#4ECDC4',
+    accountAgeDays: 1180,
+    karma: 3820,
   },
   {
     id: 'persona_emily',
@@ -92,6 +96,8 @@ When we presented, the professor stopped mid-discussion to say the slides were u
     expertise: ['academics', 'presentations', 'productivity', 'economics'],
     postingStyle: 'balanced',
     avatarColor: '#45B7D1',
+    accountAgeDays: 320,
+    karma: 870,
   },
   {
     id: 'persona_alex',
@@ -111,6 +117,8 @@ My breakthrough came when someone on the team shared Slideforge. I dropped our m
     expertise: ['sales', 'presentations', 'pitching', 'business development'],
     postingStyle: 'gives_answers',
     avatarColor: '#96CEB4',
+    accountAgeDays: 760,
+    karma: 2210,
   },
   {
     id: 'persona_priya',
@@ -130,6 +138,8 @@ During one particularly chaotic review cycle, I was running out of time and some
     expertise: ['product management', 'presentations', 'strategy', 'cross-functional communication'],
     postingStyle: 'balanced',
     avatarColor: '#DDA0DD',
+    accountAgeDays: 640,
+    karma: 1930,
   },
 ];
 
@@ -140,6 +150,7 @@ export const sampleSubreddits: Subreddit[] = [
     name: 'r/PowerPoint',
     description: 'Discussion about Microsoft PowerPoint and presentation design',
     bestTimes: ['morning', 'afternoon'],
+    sensitivity: 'medium',
   },
   {
     id: 'sub_claudeai',
@@ -147,6 +158,7 @@ export const sampleSubreddits: Subreddit[] = [
     name: 'r/ClaudeAI',
     description: 'Discussion about Claude AI and its applications',
     bestTimes: ['afternoon', 'evening'],
+    sensitivity: 'medium',
   },
   {
     id: 'sub_canva',
@@ -154,6 +166,7 @@ export const sampleSubreddits: Subreddit[] = [
     name: 'r/Canva',
     description: 'Discussion about Canva and design tools',
     bestTimes: ['afternoon', 'evening'],
+    sensitivity: 'high',
   },
   {
     id: 'sub_startups',
@@ -161,6 +174,7 @@ export const sampleSubreddits: Subreddit[] = [
     name: 'r/startups',
     description: 'Startup discussions, advice, and resources',
     bestTimes: ['morning', 'afternoon'],
+    sensitivity: 'high',
   },
   {
     id: 'sub_consulting',
@@ -168,6 +182,7 @@ export const sampleSubreddits: Subreddit[] = [
     name: 'r/consulting',
     description: 'Consulting industry discussions and career advice',
     bestTimes: ['morning', 'evening'],
+    sensitivity: 'high',
   },
   {
     id: 'sub_productivity',
@@ -175,6 +190,7 @@ export const sampleSubreddits: Subreddit[] = [
     name: 'r/productivity',
     description: 'Tips and tools for improving productivity',
     bestTimes: ['morning', 'afternoon'],
+    sensitivity: 'medium',
   },
   {
     id: 'sub_entrepreneur',
@@ -182,6 +198,7 @@ export const sampleSubreddits: Subreddit[] = [
     name: 'r/entrepreneur',
     description: 'Entrepreneurship discussions and advice',
     bestTimes: ['morning', 'afternoon'],
+    sensitivity: 'high',
   },
 ];
 

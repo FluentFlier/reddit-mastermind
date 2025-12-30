@@ -39,6 +39,8 @@ export interface ThreadGeneratorConfig {
   weekNumber: number;
   preferences?: GenerationPreferences;
   constraints?: PlannerConstraints;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }
 
 export interface ThreadGeneratorResult {
@@ -73,6 +75,8 @@ export async function generateThreads(
         weekNumber,
         preferences: config.preferences,
         constraints: effectiveConstraints,
+        weeklyGoals: config.weeklyGoals,
+        riskTolerance: config.riskTolerance,
       });
       
       threads.push(thread);
@@ -100,6 +104,8 @@ export async function regenerateThread(config: {
   weekNumber: number;
   preferences?: GenerationPreferences;
   constraints?: PlannerConstraints;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }): Promise<Thread> {
   return generateThread(config);
 }
@@ -113,8 +119,10 @@ async function generateThread(config: {
   weekNumber: number;
   preferences?: GenerationPreferences;
   constraints?: PlannerConstraints;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }): Promise<Thread> {
-  const { slot, company, weekNumber, preferences, constraints } = config;
+  const { slot, company, weekNumber, preferences, constraints, weeklyGoals, riskTolerance } = config;
   
   // Generate the main post
   const post = await generatePost({
@@ -123,6 +131,8 @@ async function generateThread(config: {
     weekNumber,
     preferences,
     constraints,
+    weeklyGoals,
+    riskTolerance,
   });
   
   // Generate comments
@@ -132,6 +142,8 @@ async function generateThread(config: {
     company,
     preferences,
     constraints,
+    weeklyGoals,
+    riskTolerance,
   });
   
   return { post, comments, slot };
@@ -146,8 +158,10 @@ async function generatePost(config: {
   weekNumber: number;
   preferences?: GenerationPreferences;
   constraints?: PlannerConstraints;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }): Promise<Post> {
-  const { slot, company, weekNumber, preferences } = config;
+  const { slot, company, weekNumber, preferences, weeklyGoals, riskTolerance } = config;
   
   const prompt = buildPostPrompt({
     persona: slot.opPersona,
@@ -156,6 +170,8 @@ async function generatePost(config: {
     company,
     threadType: slot.threadType,
     preferences,
+    weeklyGoals,
+    riskTolerance,
   });
   
   let content: { title: string; body: string };
@@ -208,8 +224,10 @@ async function generateComments(config: {
   company: Company;
   preferences?: GenerationPreferences;
   constraints?: PlannerConstraints;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }): Promise<Comment[]> {
-  const { post, slot, company, preferences, constraints } = config;
+  const { post, slot, company, preferences, constraints, weeklyGoals, riskTolerance } = config;
   const effectiveConstraints = constraints || DEFAULT_CONSTRAINTS;
   
   const comments: Comment[] = [];
@@ -217,7 +235,8 @@ async function generateComments(config: {
   let lastTimestamp = post.scheduledAt;
   
   // Determine which comments (if any) should mention the product
-  const allowProduct = preferences?.allowProductMention !== false;
+  const subredditAllowsPromo = slot.subreddit.rules?.allowsSelfPromotion !== false;
+  const allowProduct = preferences?.allowProductMention !== false && riskTolerance !== 'low' && subredditAllowsPromo;
   const mentionTargetCount = allowProduct
     ? Math.max(0, preferences?.productMentionCount ?? 0)
     : 0;
@@ -256,6 +275,8 @@ async function generateComments(config: {
       shouldMentionProduct: allowProduct && (mentionIndices.has(i) || i === mentionProductIndex),
       preferences,
       forceDisagreement: i === disagreementIndex,
+      weeklyGoals,
+      riskTolerance,
     });
     
     let content: { text: string };

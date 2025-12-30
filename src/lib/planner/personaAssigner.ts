@@ -25,6 +25,7 @@ export interface PersonaAssignerConfig {
   slots: MatchedSlot[];
   personas: Persona[];
   constraints?: PlannerConstraints;
+  previousWeeks?: { personasUsed: Record<string, number> }[];
 }
 
 export interface PersonaAssignerResult {
@@ -55,7 +56,7 @@ interface PersonaUsageTracker {
 export function assignPersonas(
   config: PersonaAssignerConfig
 ): PersonaAssignerResult {
-  const { slots, personas, constraints } = config;
+  const { slots, personas, constraints, previousWeeks = [] } = config;
   const effectiveConstraints = constraints || DEFAULT_CONSTRAINTS;
   
   if (personas.length < 2) {
@@ -64,6 +65,7 @@ export function assignPersonas(
   
   const assignedSlots: AssignedSlot[] = [];
   const usage = new Map<string, PersonaUsageTracker>();
+  const recentUsage = buildRecentPersonaUsage(previousWeeks);
   const pairingsThisWeek = new Set<string>();
   const warnings: string[] = [];
   
@@ -82,6 +84,7 @@ export function assignPersonas(
       slot,
       personas,
       usage,
+      recentUsage,
       constraints: effectiveConstraints,
     });
     
@@ -104,6 +107,7 @@ export function assignPersonas(
       personas,
       count: commenterCount,
       usage,
+      recentUsage,
       pairingsThisWeek,
       slot,
       constraints: effectiveConstraints,
@@ -160,9 +164,11 @@ function selectOP(config: {
   slot: MatchedSlot;
   personas: Persona[];
   usage: Map<string, PersonaUsageTracker>;
+  recentUsage: Map<string, { posts: number; comments: number }>;
   constraints: PlannerConstraints;
 }): Persona | null {
-  const { slot, personas, usage, constraints } = config;
+  const { slot, personas, usage, recentUsage, constraints } = config;
+  const rules = slot.subreddit.rules;
   
   // Filter eligible personas
   const eligible = personas.filter(persona => {
@@ -186,6 +192,10 @@ function selectOP(config: {
     if (!isPersonaFitForThreadType(persona, slot.threadType)) {
       return false;
     }
+
+    if (rules && !personaMeetsSubredditRules(persona, rules)) {
+      return false;
+    }
     
     return true;
   });
@@ -202,6 +212,11 @@ function selectOP(config: {
     
     // Lower usage = higher score
     score -= tracker.postsThisWeek * 2;
+
+    const recent = recentUsage.get(persona.id);
+    if (recent) {
+      score -= recent.posts * 1.5;
+    }
     
     // Thread type fit bonus
     score += getThreadTypeFitScore(persona, slot.threadType);
@@ -279,11 +294,13 @@ function selectCommenters(config: {
   personas: Persona[];
   count: number;
   usage: Map<string, PersonaUsageTracker>;
+  recentUsage: Map<string, { posts: number; comments: number }>;
   pairingsThisWeek: Set<string>;
   slot: MatchedSlot;
   constraints: PlannerConstraints;
 }): Persona[] {
-  const { opPersona, personas, count, usage, pairingsThisWeek, slot, constraints } = config;
+  const { opPersona, personas, count, usage, recentUsage, pairingsThisWeek, slot, constraints } = config;
+  const rules = slot.subreddit.rules;
   
   // Filter eligible commenters
   const eligible = personas.filter(persona => {
@@ -309,6 +326,10 @@ function selectCommenters(config: {
     if (!canInteract.allowed) {
       return false;
     }
+
+    if (rules && !personaMeetsSubredditRules(persona, rules)) {
+      return false;
+    }
     
     return true;
   });
@@ -320,6 +341,9 @@ function selectCommenters(config: {
         if (persona.id === opPersona.id) return false;
         const tracker = usage.get(persona.id);
         if (tracker && tracker.commentsThisWeek >= constraints.maxCommentsPerPersonaPerWeek) {
+          return false;
+        }
+        if (rules && !personaMeetsSubredditRules(persona, rules)) {
           return false;
         }
         return true;
@@ -338,6 +362,11 @@ function selectCommenters(config: {
     
     // Lower comment usage = higher score
     score -= tracker.commentsThisWeek;
+
+    const recent = recentUsage.get(persona.id);
+    if (recent) {
+      score -= recent.comments * 0.75;
+    }
     
     // Prefer personas that complement the OP
     score += getComplementScore(opPersona, persona);
@@ -368,6 +397,40 @@ function selectCommenters(config: {
   }
   
   return selected;
+}
+
+function buildRecentPersonaUsage(
+  previousWeeks: { personasUsed: Record<string, number> }[]
+): Map<string, { posts: number; comments: number }> {
+  const usage = new Map<string, { posts: number; comments: number }>();
+  previousWeeks.forEach((week, index) => {
+    const weight = 1 / (index + 1);
+    Object.entries(week.personasUsed || {}).forEach(([personaId, count]) => {
+      const current = usage.get(personaId) || { posts: 0, comments: 0 };
+      current.posts += count * weight;
+      current.comments += Math.max(0, count - 1) * weight;
+      usage.set(personaId, current);
+    });
+  });
+  return usage;
+}
+
+function personaMeetsSubredditRules(
+  persona: Persona,
+  rules: { minKarma?: number; minAccountAge?: number }
+): boolean {
+  const karma = persona.karma ?? 0;
+  const accountAgeDays = persona.accountAgeDays ?? 0;
+
+  if (rules.minKarma !== undefined && karma < rules.minKarma) {
+    return false;
+  }
+
+  if (rules.minAccountAge !== undefined && accountAgeDays < rules.minAccountAge) {
+    return false;
+  }
+
+  return true;
 }
 
 /**

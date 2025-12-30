@@ -1,4 +1,4 @@
-import { PlannerConstraints } from '@/types';
+import { PlannerConstraints, Subreddit } from '@/types';
 
 // ============================================
 // DEFAULT PLANNER CONSTRAINTS
@@ -244,14 +244,28 @@ export const SUBREDDIT_PRESETS: Record<string, Partial<PlannerConstraints>> = {
 };
 
 export function getSubredditConstraints(
-  subredditName: string,
+  subreddit: Subreddit,
   baseConstraints: PlannerConstraints
 ): PlannerConstraints {
-  const preset = SUBREDDIT_PRESETS[subredditName];
-  
-  if (preset) {
-    return { ...baseConstraints, ...preset };
-  }
-  
-  return baseConstraints;
+  const preset = SUBREDDIT_PRESETS[subreddit.name];
+  const sensitivity = subreddit.sensitivity || 'medium';
+  const sensitivityAdjustments: Partial<PlannerConstraints> =
+    sensitivity === 'high'
+      ? {
+          maxPostsPerSubredditPerWeek: Math.max(1, baseConstraints.maxPostsPerSubredditPerWeek - 1),
+          minDaysBetweenSubredditPosts: baseConstraints.minDaysBetweenSubredditPosts + 2,
+          maxPromoScoreAllowed: Math.max(2, baseConstraints.maxPromoScoreAllowed - 1),
+        }
+      : sensitivity === 'low'
+      ? {
+          maxPostsPerSubredditPerWeek: baseConstraints.maxPostsPerSubredditPerWeek + 1,
+          minDaysBetweenSubredditPosts: Math.max(1, baseConstraints.minDaysBetweenSubredditPosts - 1),
+        }
+      : {};
+
+  return {
+    ...baseConstraints,
+    ...preset,
+    ...sensitivityAdjustments,
+  };
 }

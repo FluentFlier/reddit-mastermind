@@ -9,9 +9,10 @@ import {
   IssueSeverity,
   Subreddit,
   PlannerConstraints,
+  CalendarHistory,
 } from '@/types';
 import { calculateSimilarity, createPairingKey } from '@/lib/utils';
-import { DEFAULT_CONSTRAINTS } from './constraints';
+import { DEFAULT_CONSTRAINTS, getSubredditConstraints } from './constraints';
 
 // ============================================
 // QUALITY CHECKER
@@ -23,6 +24,7 @@ export interface QualityCheckConfig {
   subreddits?: Subreddit[];
   constraints?: PlannerConstraints;
   antiPromoChecks?: boolean;
+  previousWeeks?: CalendarHistory[];
 }
 
 export interface QualityCheckResult {
@@ -34,7 +36,7 @@ export interface QualityCheckResult {
  * Performs quality checks on all generated threads
  */
 export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
-  const { threads, company, subreddits, constraints, antiPromoChecks } = config;
+  const { threads, company, subreddits, constraints, antiPromoChecks, previousWeeks } = config;
   
   const issues: QualityIssue[] = [];
   const warnings: string[] = [];
@@ -42,15 +44,22 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
   const promoCheckResult = { issues: [] as QualityIssue[], warnings: [] as string[], warningsByPostId: {} as Record<string, string[]> };
   
   // Run all checks
-  issues.push(...checkOverposting(threads));
+  issues.push(...checkOverposting(threads, subreddits, constraints));
   issues.push(...checkDuplication(threads));
   issues.push(...checkPersonaCollisions(threads));
   issues.push(...checkTimingIssues(threads));
   issues.push(...checkPersonaBalance(threads, constraints));
   issues.push(...checkSubredditRules(threads, company, subreddits));
+  issues.push(...checkRepetitiveLanguage(threads));
+  const agreementCheck = checkOverAgreement(threads);
+  warnings.push(...agreementCheck.warnings);
+  const effortCheck = checkLowEffortContent(threads);
+  warnings.push(...effortCheck.warnings);
+  const saturationCheck = checkSubredditSaturation(threads, previousWeeks, constraints);
+  warnings.push(...saturationCheck.warnings);
   
   if (antiPromoChecks !== false) {
-    const promoCheck = checkPromotionalContent(threads, company);
+    const promoCheck = checkPromotionalContent(threads, company, subreddits, constraints);
     promoCheckResult.issues = promoCheck.issues;
     promoCheckResult.warnings = promoCheck.warnings;
     promoCheckResult.warningsByPostId = promoCheck.warningsByPostId;
@@ -82,7 +91,13 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
     }
   }
 
-  const warningsByPostId = antiPromoChecks === false ? {} : promoCheckResult.warningsByPostId;
+  const warningsByPostId = mergeWarningsByPostId(
+    antiPromoChecks === false ? {} : promoCheckResult.warningsByPostId,
+    agreementCheck.warningsByPostId,
+    effortCheck.warningsByPostId,
+    saturationCheck.warningsByPostId
+  );
+  const suggestionsByPostId = buildSuggestionsByPost(issues, warningsByPostId);
 
   return {
     validatedThreads: threads,
@@ -93,6 +108,7 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
       suggestions,
       issuesByPostId,
       warningsByPostId,
+      suggestionsByPostId,
     },
   };
 }
@@ -104,7 +120,11 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
 /**
  * Checks for overposting in any subreddit
  */
-function checkOverposting(threads: Thread[]): QualityIssue[] {
+function checkOverposting(
+  threads: Thread[],
+  subreddits?: Subreddit[],
+  constraints?: PlannerConstraints
+): QualityIssue[] {
   const issues: QualityIssue[] = [];
   
   // Count posts per subreddit
@@ -121,11 +141,15 @@ function checkOverposting(threads: Thread[]): QualityIssue[] {
   
   // Check limits
   for (const [subreddit, data] of Object.entries(subredditCounts)) {
-    if (data.count > DEFAULT_CONSTRAINTS.maxPostsPerSubredditPerWeek) {
+    const sub = subreddits?.find(s => s.name === subreddit || s.id === subreddit);
+    const effective = sub
+      ? getSubredditConstraints(sub, constraints || DEFAULT_CONSTRAINTS)
+      : constraints || DEFAULT_CONSTRAINTS;
+    if (data.count > effective.maxPostsPerSubredditPerWeek) {
       issues.push({
         type: 'overposting',
         severity: 'high',
-        message: `${subreddit} has ${data.count} posts this week (max: ${DEFAULT_CONSTRAINTS.maxPostsPerSubredditPerWeek})`,
+        message: `${subreddit} has ${data.count} posts this week (max: ${effective.maxPostsPerSubredditPerWeek})`,
         affectedPostIds: data.postIds,
       });
     }
@@ -246,12 +270,115 @@ function checkTimingIssues(threads: Thread[]): QualityIssue[] {
   return issues;
 }
 
+function checkOverAgreement(threads: Thread[]): { warnings: string[]; warningsByPostId: Record<string, string[]> } {
+  const warnings: string[] = [];
+  const warningsByPostId: Record<string, string[]> = {};
+
+  for (const thread of threads) {
+    if (thread.comments.length < 2) continue;
+    const hasDisagreement = thread.comments.some(c =>
+      /but|though|however|not sure|depends|maybe|counterpoint|not necessarily/i.test(c.content)
+    );
+    if (!hasDisagreement) {
+      const warning = `Thread "${truncate(thread.post.title, 30)}" has uniform agreement; add at least one nuanced reply.`;
+      warnings.push(warning);
+      if (!warningsByPostId[thread.post.id]) warningsByPostId[thread.post.id] = [];
+      warningsByPostId[thread.post.id].push(warning);
+    }
+  }
+
+  return { warnings, warningsByPostId };
+}
+
+function checkLowEffortContent(threads: Thread[]): { warnings: string[]; warningsByPostId: Record<string, string[]> } {
+  const warnings: string[] = [];
+  const warningsByPostId: Record<string, string[]> = {};
+
+  for (const thread of threads) {
+    if (thread.post.body.trim().length < 40) {
+      const warning = `Post "${truncate(thread.post.title, 30)}" feels short; add more context.`;
+      warnings.push(warning);
+      if (!warningsByPostId[thread.post.id]) warningsByPostId[thread.post.id] = [];
+      warningsByPostId[thread.post.id].push(warning);
+    }
+    const shortComments = thread.comments.filter(c => c.content.trim().length < 25).length;
+    if (shortComments >= 2) {
+      const warning = `Thread "${truncate(thread.post.title, 30)}" has multiple low-effort comments.`;
+      warnings.push(warning);
+      if (!warningsByPostId[thread.post.id]) warningsByPostId[thread.post.id] = [];
+      warningsByPostId[thread.post.id].push(warning);
+    }
+  }
+
+  return { warnings, warningsByPostId };
+}
+
+function checkRepetitiveLanguage(threads: Thread[]): QualityIssue[] {
+  const issues: QualityIssue[] = [];
+
+  for (const thread of threads) {
+    for (let i = 0; i < thread.comments.length; i++) {
+      for (let j = i + 1; j < thread.comments.length; j++) {
+        const similarity = calculateSimilarity(thread.comments[i].content, thread.comments[j].content);
+        if (similarity >= 0.7) {
+          issues.push({
+            type: 'duplication',
+            severity: 'low',
+            message: `Comments in "${truncate(thread.post.title, 30)}" are highly similar (${Math.round(similarity * 100)}% overlap)`,
+            affectedPostIds: [thread.post.id],
+          });
+        }
+      }
+    }
+  }
+
+  return issues;
+}
+
+function checkSubredditSaturation(
+  threads: Thread[],
+  previousWeeks: CalendarHistory[] | undefined,
+  constraints?: PlannerConstraints
+): { warnings: string[]; warningsByPostId: Record<string, string[]> } {
+  if (!previousWeeks || previousWeeks.length === 0) {
+    return { warnings: [], warningsByPostId: {} };
+  }
+  const warnings: string[] = [];
+  const warningsByPostId: Record<string, string[]> = {};
+  const maxPerWeek = constraints?.maxPostsPerSubredditPerWeek || DEFAULT_CONSTRAINTS.maxPostsPerSubredditPerWeek;
+
+  const recent = previousWeeks[0];
+  const recentUsage = recent?.subredditsUsed || {};
+  const currentUsage: Record<string, number> = {};
+  threads.forEach((t) => {
+    currentUsage[t.post.subredditName] = (currentUsage[t.post.subredditName] || 0) + 1;
+  });
+
+  Object.entries(currentUsage).forEach(([sub, count]) => {
+    const recentCount = recentUsage[sub] || 0;
+    if (count + recentCount > maxPerWeek * 2) {
+      const warning = `${sub} is saturated across weeks (last week ${recentCount}, this week ${count}).`;
+      warnings.push(warning);
+      threads
+        .filter(t => t.post.subredditName === sub)
+        .forEach(t => {
+          if (!warningsByPostId[t.post.id]) warningsByPostId[t.post.id] = [];
+          warningsByPostId[t.post.id].push(warning);
+        });
+    }
+  });
+
+  return { warnings, warningsByPostId };
+}
+
 /**
  * Checks for promotional content
  */
 function checkPromotionalContent(
   threads: Thread[],
-  company: Company
+  company: Company,
+  subreddits?: Subreddit[],
+  constraints?: PlannerConstraints
 ): { issues: QualityIssue[]; warnings: string[]; warningsByPostId: Record<string, string[]> } {
   const issues: QualityIssue[] = [];
   const warnings: string[] = [];
@@ -319,7 +446,12 @@ function checkPromotionalContent(
     }
     
     // Record issues
-    if (promoScore > DEFAULT_CONSTRAINTS.maxPromoScoreAllowed) {
+    const sub = subreddits?.find(s => s.id === thread.post.subredditId || s.name === thread.post.subredditName);
+    const effective = sub
+      ? getSubredditConstraints(sub, constraints || DEFAULT_CONSTRAINTS)
+      : constraints || DEFAULT_CONSTRAINTS;
+
+    if (promoScore > effective.maxPromoScoreAllowed) {
       issues.push({
         type: 'promo_sensitivity',
         severity: promoScore > 8 ? 'high' : 'medium',
@@ -470,6 +602,61 @@ function checkVoiceConsistency(
   }
   
   return { issues, suggestions };
+}
+
+function buildSuggestionsByPost(
+  issues: QualityIssue[],
+  warningsByPostId: Record<string, string[]>
+): Record<string, string[]> {
+  const suggestionsByPostId: Record<string, string[]> = {};
+
+  const addSuggestion = (postId: string, suggestion: string) => {
+    if (!suggestionsByPostId[postId]) suggestionsByPostId[postId] = [];
+    if (!suggestionsByPostId[postId].includes(suggestion)) {
+      suggestionsByPostId[postId].push(suggestion);
+    }
+  };
+
+  for (const issue of issues) {
+    const suggestion = issue.type === 'overposting'
+      ? 'Reduce frequency in this subreddit or space posts further apart.'
+      : issue.type === 'duplication'
+      ? 'Rewrite to introduce a distinct angle or new details.'
+      : issue.type === 'persona_collision'
+      ? 'Rotate personas or reduce repeat interactions.'
+      : issue.type === 'timing_issue'
+      ? 'Increase delays between comments to look organic.'
+      : issue.type === 'promo_sensitivity'
+      ? 'Remove product mentions and soften promotional language.'
+      : 'Vary tone and voice between personas.';
+
+    (issue.affectedPostIds || []).forEach((postId) => addSuggestion(postId, suggestion));
+  }
+
+  Object.entries(warningsByPostId).forEach(([postId, warnings]) => {
+    if (warnings.length > 0) {
+      addSuggestion(postId, 'Add nuance or a contrasting viewpoint to avoid over-agreement.');
+    }
+  });
+
+  return suggestionsByPostId;
+}
+
+function mergeWarningsByPostId(
+  ...maps: Record<string, string[]>[]
+): Record<string, string[]> {
+  const merged: Record<string, string[]> = {};
+  maps.forEach((map) => {
+    Object.entries(map).forEach(([postId, warnings]) => {
+      if (!merged[postId]) merged[postId] = [];
+      warnings.forEach((warning) => {
+        if (!merged[postId].includes(warning)) {
+          merged[postId].push(warning);
+        }
+      });
+    });
+  });
+  return merged;
 }
 
 // ============================================

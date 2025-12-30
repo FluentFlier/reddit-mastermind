@@ -83,6 +83,11 @@ export default function Dashboard() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const router = useRouter();
+  const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+  const demoUser = demoMode ? ({ id: 'demo-user', externalId: 'demo-user' } as typeof user) : null;
+  const effectiveUser = demoUser ?? user;
+  const effectiveIsLoaded = demoMode ? true : isLoaded;
+  const effectiveUserId = effectiveUser?.id;
   const [companies, setCompanies] = useState<Company[]>([]);
   const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
   const [companyDraft, setCompanyDraft] = useState<Partial<Company>>({
@@ -112,6 +117,8 @@ export default function Dashboard() {
   });
   const [postsPerWeek, setPostsPerWeek] = useState(3);
   const [weeksToGenerate, setWeeksToGenerate] = useState(1);
+  const [weeklyGoalsInput, setWeeklyGoalsInput] = useState('');
+  const [riskTolerance, setRiskTolerance] = useState<'low' | 'medium' | 'high'>('medium');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<PlannerOutput | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
@@ -173,11 +180,11 @@ export default function Dashboard() {
   const activeCompany = companies.find((c) => c.id === activeCompanyId) || null;
 
   useEffect(() => {
-    if (!user?.id) return;
-    loadCompanies(user.id).catch((err) => {
+    if (!effectiveUserId) return;
+    loadCompanies(effectiveUserId).catch((err) => {
       setError(err instanceof Error ? err.message : 'Failed to load companies');
     });
-  }, [user?.id]);
+  }, [effectiveUserId]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -335,7 +342,7 @@ const filteredComments = useMemo(() => {
     shouldAutoGenerate,
   ]);
 
-  if (!isLoaded) {
+  if (!effectiveIsLoaded) {
     return (
       <div className="rounded-2xl bg-white p-6 shadow-sm dark:border dark:border-white/10 dark:bg-[#18181b]">
         <p className="text-slate-500 dark:text-white/60">Loading authentication…</p>
@@ -343,7 +350,7 @@ const filteredComments = useMemo(() => {
     );
   }
 
-  if (isLoaded && !user) {
+  if (effectiveIsLoaded && !effectiveUser) {
     router.replace('/login');
     return null;
   }
@@ -469,6 +476,17 @@ const filteredComments = useMemo(() => {
   }
 
   async function loadCompanies(userExternalId: string) {
+    if (demoMode) {
+      setCompanies([sampleCompany]);
+      setActiveCompanyId(sampleCompany.id);
+      setCompanyDraft(sampleCompany);
+      setConstraints(sampleCompany.constraints || DEFAULT_CONSTRAINTS);
+      setPersonas(samplePersonas);
+      setSubreddits(sampleSubreddits);
+      setKeywords(sampleKeywords);
+      setShouldAutoGenerate(true);
+      return;
+    }
     const list = await listCompanies(userExternalId);
     if (list.length === 0) {
       try {
@@ -518,7 +536,7 @@ const filteredComments = useMemo(() => {
   }
 
   async function loadCompanyData(companyId: string) {
-    if (companyId === sampleCompany.id) {
+    if (demoMode || companyId === sampleCompany.id) {
       setPersonas(samplePersonas);
       setSubreddits(sampleSubreddits);
       setKeywords(sampleKeywords);
@@ -574,8 +592,20 @@ const filteredComments = useMemo(() => {
       setError('Company name is required');
       return;
     }
-    if (!user?.id) return;
-    const saved = await upsertCompany(companyDraft as Company, user.id);
+    if (demoMode) {
+      const fallbackId = activeCompanyId || sampleCompany.id || 'demo-company';
+      const saved = { ...companyDraft, id: fallbackId } as Company;
+      const nextCompanies = companies.filter((c) => c.id !== saved.id).concat(saved);
+      setCompanies(nextCompanies);
+      setActiveCompanyId(saved.id);
+      setCompanyDraft(saved);
+      return;
+    }
+    if (!effectiveUserId) {
+      setError('User not available.');
+      return;
+    }
+    const saved = await upsertCompany(companyDraft as Company, effectiveUserId);
     const nextCompanies = companies.filter((c) => c.id !== saved.id).concat(saved);
     setCompanies(nextCompanies);
     setActiveCompanyId(saved.id);
@@ -691,6 +721,11 @@ const filteredComments = useMemo(() => {
           }
         : effectivePreferences;
 
+      const weeklyGoals = weeklyGoalsInput
+        .split(/\n|,/)
+        .map((goal) => goal.trim())
+        .filter(Boolean);
+
       const outputs: PlannerOutput[] = [];
 
       for (let i = 0; i < Math.max(weeksToGenerate, 1); i += 1) {
@@ -707,6 +742,8 @@ const filteredComments = useMemo(() => {
             weekStartDate: weekStartDate.toISOString(),
             preferences: enforcedPreferences,
             constraints,
+            weeklyGoals,
+            riskTolerance,
           }),
         });
 
@@ -933,6 +970,11 @@ const filteredComments = useMemo(() => {
         commentGuidelines: [enforcedBase.commentGuidelines, notes].filter(Boolean).join(' '),
       };
 
+      const weeklyGoals = weeklyGoalsInput
+        .split(/\n|,/)
+        .map((goal) => goal.trim())
+        .filter(Boolean);
+
       const targetSubreddit = subredditsPayload.find((s) => s.id === post.subredditId) || null;
       const targetKeywords = keywordsPayload.filter((k) => post.keywordIds.includes(k.id));
 
@@ -948,6 +990,8 @@ const filteredComments = useMemo(() => {
           weekStartDate: post.scheduledAt.toISOString(),
           preferences: regenPreferences,
           constraints,
+          weeklyGoals,
+          riskTolerance,
         }),
       });
 
@@ -1351,6 +1395,39 @@ const filteredComments = useMemo(() => {
                       </div>
                       <div className="mt-1 min-h-[14px] text-[11px] text-slate-500 dark:text-white/50">
                         Set to 0 to avoid mentions.
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+                    <div>
+                      <label className={labelClass}>Weekly goals</label>
+                      <textarea
+                        value={weeklyGoalsInput}
+                        onChange={(e) => setWeeklyGoalsInput(e.target.value)}
+                        className={`${inputPlain} mt-2 min-h-[96px]`}
+                        rows={3}
+                        placeholder="e.g., Surface pain points about deck creation\nCollect language for comparison posts\nDrive consultant use-cases"
+                      />
+                      <div className="mt-1 text-[11px] text-slate-500 dark:text-white/50">
+                        One goal per line or comma separated.
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Risk tolerance</label>
+                      <div className="relative mt-2">
+                        <ShieldCheck className={inputIcon} />
+                        <select
+                          value={riskTolerance}
+                          onChange={(e) => setRiskTolerance(e.target.value as 'low' | 'medium' | 'high')}
+                          className={`${inputBase} appearance-none`}
+                        >
+                          <option value="low">Low (conservative)</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High (experimental)</option>
+                        </select>
+                      </div>
+                      <div className="mt-1 text-[11px] text-slate-500 dark:text-white/50">
+                        Adjusts guardrails + product mention risk.
                       </div>
                     </div>
                   </div>
@@ -1899,6 +1976,33 @@ const filteredComments = useMemo(() => {
                 <p className={labelClass}>Configure</p>
                 <h3 className={titleClass}>Generation Preferences</h3>
               </div>
+              <div className="grid gap-3 md:grid-cols-[2fr_1fr] text-sm">
+                <div>
+                  <label className={labelClass}>Weekly goals</label>
+                  <textarea
+                    value={weeklyGoalsInput}
+                    onChange={(e) => setWeeklyGoalsInput(e.target.value)}
+                    className={`${inputPlain} mt-2 min-h-[96px]`}
+                    rows={3}
+                    placeholder="List the goals you want this week to accomplish"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Risk tolerance</label>
+                  <select
+                    value={riskTolerance}
+                    onChange={(e) => setRiskTolerance(e.target.value as 'low' | 'medium' | 'high')}
+                    className={`${inputPlain} mt-2`}
+                  >
+                    <option value="low">Low (conservative)</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High (experimental)</option>
+                  </select>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-white/60">
+                    Lower risk reduces promo attempts and posting intensity.
+                  </p>
+                </div>
+              </div>
               <div className="grid gap-3 md:grid-cols-2 text-sm">
                 <div>
                   <label className={labelClass}>Min comment length</label>
@@ -2170,7 +2274,11 @@ const filteredComments = useMemo(() => {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={async () => {
-                    if (!user?.id) return;
+                    const userId = effectiveUserId;
+                    if (!userId) {
+                      setImportStatus('User not available for import.');
+                      return;
+                    }
                     try {
                       const companyPayload = importPreview.company || {
                         name: importNotes.companyName || '',
@@ -2238,15 +2346,13 @@ const filteredComments = useMemo(() => {
                           posts: importPreview.posts,
                           comments: importPreview.comments,
                         },
-                        user.id
+                        userId
                       );
 
                       setActiveCompanyId(saved.id);
                       setCompanyDraft(saved);
                       await loadCompanyData(saved.id);
-                      if (user?.id) {
-                        await loadCompanies(user.id);
-                      }
+                      await loadCompanies(userId);
                       setImportStatus('Imported and saved to Supabase.');
                     } catch (err) {
                       const msg =

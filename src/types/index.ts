@@ -35,6 +35,8 @@ export interface Persona {
   expertise: string[];
   postingStyle: 'asks_questions' | 'gives_answers' | 'balanced';
   avatarColor?: string;
+  accountAgeDays?: number;
+  karma?: number;
 }
 
 export interface Subreddit {
@@ -44,6 +46,7 @@ export interface Subreddit {
   description?: string;
   rules?: SubredditRules;
   bestTimes?: string[];
+  sensitivity?: 'low' | 'medium' | 'high';
 }
 
 export interface SubredditRules {
@@ -78,6 +81,8 @@ export interface PlannerInput {
   previousWeeks?: CalendarHistory[];
   preferences?: GenerationPreferences;
   constraints?: PlannerConstraints;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }
 
 export interface PlannerOutput {
@@ -156,12 +161,22 @@ export interface Post {
   scheduledAt: Date;
   keywordIds: string[];
   threadType: ThreadType;
+  intent?: PostIntent;
   qualityScore?: number;
   qualityBreakdown?: Record<string, number>;
   qualityIssues?: string[];
   qualityWarnings?: string[];
+  qualitySuggestions?: string[];
   reviewNotes?: string;
   status: 'draft' | 'approved' | 'scheduled' | 'posted' | 'failed';
+}
+
+export interface PostIntent {
+  businessGoal: string;
+  personaRationale: string;
+  subredditFitReasoning: string;
+  expectedReplyPatterns: string;
+  seoIntent: string;
 }
 
 export interface Comment {
@@ -209,6 +224,7 @@ export interface QualityReport {
   suggestions: string[];
   issuesByPostId?: Record<string, QualityIssue[]>;
   warningsByPostId?: Record<string, string[]>;
+  suggestionsByPostId?: Record<string, string[]>;
 }
 
 // ----------------
@@ -291,6 +307,8 @@ export interface GenerateCalendarRequest {
   weekNumber?: number;
   preferences?: GenerationPreferences;
   constraints?: PlannerConstraints;
+  weeklyGoals?: string[];
+  riskTolerance?: 'low' | 'medium' | 'high';
 }
 
 export interface GenerateCalendarResponse {

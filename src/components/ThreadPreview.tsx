@@ -209,6 +209,31 @@ export function ThreadPreview({
                 <span className="text-slate-400 dark:text-white/40">Replies:</span> {comments.length}
               </div>
             </div>
+
+            {post.intent && (
+              <div className="mt-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] p-3 text-xs text-slate-600 dark:border-white/10 dark:bg-[#0f0f0f] dark:text-white/70">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">
+                  Intent metadata
+                </div>
+                <div className="mt-2 grid gap-2">
+                  <div>
+                    <span className="text-slate-400 dark:text-white/40">Business goal:</span> {post.intent.businessGoal}
+                  </div>
+                  <div>
+                    <span className="text-slate-400 dark:text-white/40">Persona rationale:</span> {post.intent.personaRationale}
+                  </div>
+                  <div>
+                    <span className="text-slate-400 dark:text-white/40">Subreddit fit:</span> {post.intent.subredditFitReasoning}
+                  </div>
+                  <div>
+                    <span className="text-slate-400 dark:text-white/40">Expected replies:</span> {post.intent.expectedReplyPatterns}
+                  </div>
+                  <div>
+                    <span className="text-slate-400 dark:text-white/40">SEO intent:</span> {post.intent.seoIntent}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -323,6 +348,16 @@ export function ThreadPreview({
               <ul className="list-disc ml-4">
                 {post.qualityWarnings.map((warn, idx) => (
                   <li key={idx}>{warn}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {post.qualitySuggestions?.length ? (
+            <div>
+              <div className="font-semibold text-blue-600">Suggestions</div>
+              <ul className="list-disc ml-4">
+                {post.qualitySuggestions.map((suggestion, idx) => (
+                  <li key={idx}>{suggestion}</li>
                 ))}
               </ul>
             </div>

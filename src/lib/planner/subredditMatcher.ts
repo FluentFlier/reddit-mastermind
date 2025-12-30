@@ -14,6 +14,7 @@ import {
 import { 
   DEFAULT_CONSTRAINTS,
   canPostToSubreddit,
+  getSubredditConstraints,
 } from './constraints';
 import { PlannerConstraints } from '@/types';
 
@@ -137,10 +138,11 @@ function selectSubreddit(
 ): Subreddit | null {
   // Filter eligible subreddits
   const eligible = subreddits.filter(sub => {
+    const adjustedConstraints = getSubredditConstraints(sub, constraints);
     const check = canPostToSubreddit(
       sub.id, 
       usage, 
-      constraints, 
+      adjustedConstraints,
       proposedDate
     );
     return check.allowed;
