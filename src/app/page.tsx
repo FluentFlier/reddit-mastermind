@@ -131,7 +131,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'company' | 'personas' | 'subreddits' | 'keywords' | 'preferences' | 'constraints' | 'import' | 'history'>('overview');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [importPreview, setImportPreview] = useState<{
     company?: Company;
     personas?: Persona[];
@@ -187,7 +187,7 @@ export default function Dashboard() {
       setIsSidebarCollapsed(saved === 'true');
       return;
     }
-    const defaultCollapsed = window.innerWidth >= 1024;
+    const defaultCollapsed = false;
     setIsSidebarCollapsed(defaultCollapsed);
     window.localStorage.setItem('rm-sidebar-collapsed', String(defaultCollapsed));
   }, []);
