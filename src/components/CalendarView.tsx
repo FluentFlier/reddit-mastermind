@@ -85,23 +85,23 @@ export function CalendarView({
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h2 className="font-semibold text-gray-900">
+      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-600">
             {format(monthStart, 'MMMM yyyy')}
           </h2>
           
           {onWeekChange && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
               <button
                 onClick={() => onWeekChange('prev')}
-                className="p-1 hover:bg-gray-200 rounded"
+                className="rounded-full p-1 text-gray-600 hover:bg-gray-100"
               >
                 <ChevronLeft className="w-4 h-4 text-gray-600" />
               </button>
               <button
                 onClick={() => onWeekChange('next')}
-                className="p-1 hover:bg-gray-200 rounded"
+                className="rounded-full p-1 text-gray-600 hover:bg-gray-100"
               >
                 <ChevronRight className="w-4 h-4 text-gray-600" />
               </button>
@@ -110,7 +110,7 @@ export function CalendarView({
           {onToday && (
             <button
               onClick={onToday}
-              className="text-xs px-2 py-1 bg-white border border-gray-200 rounded hover:bg-gray-100"
+              className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 hover:bg-gray-100"
             >
               Today
             </button>
@@ -118,38 +118,38 @@ export function CalendarView({
         </div>
         
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">
-            {posts.length} posts scheduled
+          <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 shadow-sm">
+            {posts.length} scheduled
           </span>
           
           {/* View toggle */}
-          <div className="flex items-center bg-gray-200 rounded-lg p-0.5">
+          <div className="flex items-center rounded-full border border-gray-200 bg-white p-1 shadow-sm">
             <button
               onClick={() => setViewMode('calendar')}
-              className={`p-1.5 rounded ${
+              className={`rounded-full p-1.5 ${
                 viewMode === 'calendar' 
-                  ? 'bg-white shadow-sm' 
-                  : 'hover:bg-gray-300'
+                  ? 'bg-gray-100 shadow-sm' 
+                  : 'hover:bg-gray-100'
               }`}
             >
               <Calendar className="w-4 h-4 text-gray-600" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded ${
+              className={`rounded-full p-1.5 ${
                 viewMode === 'list' 
-                  ? 'bg-white shadow-sm' 
-                  : 'hover:bg-gray-300'
+                  ? 'bg-gray-100 shadow-sm' 
+                  : 'hover:bg-gray-100'
               }`}
             >
               <List className="w-4 h-4 text-gray-600" />
             </button>
             <button
               onClick={() => setViewMode('heatmap')}
-              className={`p-1.5 rounded ${
+              className={`rounded-full p-1.5 ${
                 viewMode === 'heatmap' 
-                  ? 'bg-white shadow-sm' 
-                  : 'hover:bg-gray-300'
+                  ? 'bg-gray-100 shadow-sm' 
+                  : 'hover:bg-gray-100'
               }`}
             >
               <BarChart3 className="w-4 h-4 text-gray-600" />
