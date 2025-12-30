@@ -9,8 +9,9 @@ Built for teams who care about narrative quality, not just volume.
 ## Why it stands out
 
 - **Multi‑persona realism**: OP + commenters are assigned with constraints that prevent obvious coordination.
-- **Quality guardrails**: Anti‑promo checks, voice consistency, timing realism, and duplication detection.
-- **Calendar‑first workflow**: View weeks at a glance, drill into threads, and edit in context.
+- **Quality guardrails**: Anti‑promo checks, voice consistency, timing realism, duplication, over‑agreement, and low‑effort detection.
+- **Calendar‑first workflow**: View weeks at a glance, drill into threads, edit in context, and group by subreddit.
+- **Intent metadata**: Each post includes goal, persona rationale, subreddit fit, expected replies, and SEO intent.
 - **Seeded demo data**: Slideforge is auto‑seeded so reviewers can explore immediately after login.
 
 ---
@@ -179,6 +180,34 @@ Key guardrails:
 - Avoid repeated persona pairings
 - Realistic comment delays
 - Subreddit sensitivity and min‑karma/account‑age checks (when provided)
+
+---
+
+## What you can configure (today)
+
+- **Weekly goals** (text list, used to steer post and comment prompts)
+- **Risk tolerance** (low/medium/high, tunes promo risk + guardrails)
+- **Preferences** (anti‑promo checks, min/max lengths, banned phrases, campaign brief, disagreement requirement)
+- **Constraints** (posting cadence, persona limits, timing ranges)
+- **Subreddit rules** (min account age / karma, self‑promo allowed)
+
+---
+
+## What you get per thread
+
+- **Post + comments** with realistic scheduling
+- **Quality score + breakdown**
+- **Issues, warnings, and suggestions** (per post)
+- **Intent metadata** (goal, persona rationale, subreddit fit, expected replies, SEO intent)
+
+---
+
+## UI highlights
+
+- Calendar grid, list, and heatmap views
+- Subreddit‑grouped list view with warning counts
+- Thread preview with inline edit + regeneration
+- Quality panel with issues, warnings, and suggestions
 
 ---
 
