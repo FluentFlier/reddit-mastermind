@@ -15,7 +15,7 @@ Built for teams who care about narrative quality, not just volume.
 
 ---
 
-## Product tour (90 seconds)
+## Product tour
 
 ![Product tour demo](public/media/demo.gif)
 
