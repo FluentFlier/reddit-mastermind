@@ -53,6 +53,8 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
   issues.push(...checkRepetitiveLanguage(threads));
   const agreementCheck = checkOverAgreement(threads);
   warnings.push(...agreementCheck.warnings);
+  const humanTextureCheck = checkHumanTexture(threads);
+  warnings.push(...humanTextureCheck.warnings);
   const effortCheck = checkLowEffortContent(threads);
   warnings.push(...effortCheck.warnings);
   const saturationCheck = checkSubredditSaturation(threads, previousWeeks, constraints);
@@ -94,6 +96,7 @@ export function checkQuality(config: QualityCheckConfig): QualityCheckResult {
   const warningsByPostId = mergeWarningsByPostId(
     antiPromoChecks === false ? {} : promoCheckResult.warningsByPostId,
     agreementCheck.warningsByPostId,
+    humanTextureCheck.warningsByPostId,
     effortCheck.warningsByPostId,
     saturationCheck.warningsByPostId
   );
@@ -281,6 +284,47 @@ function checkOverAgreement(threads: Thread[]): { warnings: string[]; warningsBy
     );
     if (!hasDisagreement) {
       const warning = `Thread "${truncate(thread.post.title, 30)}" has uniform agreement; add at least one nuanced reply.`;
+      warnings.push(warning);
+      if (!warningsByPostId[thread.post.id]) warningsByPostId[thread.post.id] = [];
+      warningsByPostId[thread.post.id].push(warning);
+    }
+  }
+
+  return { warnings, warningsByPostId };
+}
+
+function checkHumanTexture(threads: Thread[]): { warnings: string[]; warningsByPostId: Record<string, string[]> } {
+  const warnings: string[] = [];
+  const warningsByPostId: Record<string, string[]> = {};
+  const hedgeRegex = /\b(imo|imho|maybe|kinda|sort of|probably|i think|i feel|not sure|depends|i guess|seems|idk)\b/i;
+
+  for (const thread of threads) {
+    if (thread.comments.length < 2) continue;
+
+    const commentLengths = thread.comments.map(c => c.content.trim().length);
+    const lengthRange = Math.max(...commentLengths) - Math.min(...commentLengths);
+    const hasHedge = thread.comments.some(c => hedgeRegex.test(c.content));
+    const sentenceCounts = thread.comments.map((c) =>
+      c.content.split(/[.!?]+/).map(s => s.trim()).filter(Boolean).length
+    );
+    const uniqueSentenceCounts = new Set(sentenceCounts);
+
+    const threadWarnings: string[] = [];
+
+    if (!hasHedge) {
+      threadWarnings.push('No hedging or softening language detected in comments.');
+    }
+
+    if (lengthRange < 40) {
+      threadWarnings.push('Comment lengths look too uniform; vary pacing and length.');
+    }
+
+    if (uniqueSentenceCounts.size === 1 && sentenceCounts[0] <= 1) {
+      threadWarnings.push('All comments are single-sentence; add variety in sentence structure.');
+    }
+
+    if (threadWarnings.length > 0) {
+      const warning = `Thread "${truncate(thread.post.title, 30)}" lacks human texture. ${threadWarnings.join(' ')}`;
       warnings.push(warning);
       if (!warningsByPostId[thread.post.id]) warningsByPostId[thread.post.id] = [];
       warningsByPostId[thread.post.id].push(warning);

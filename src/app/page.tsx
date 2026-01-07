@@ -107,6 +107,9 @@ export default function Dashboard() {
     productMentionCount: 1,
     antiPromoChecks: true,
     bannedPhrases: ['best ever', 'life changing', 'game changer'],
+    commentVoicePreset: 'balanced',
+    naturalnessLevel: 'medium',
+    allowMinorImperfections: true,
     minCommentLength: 40,
     maxCommentLength: 240,
     minPostLength: 120,
@@ -2009,6 +2012,58 @@ Drive consultant use-cases`}
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-2 text-sm">
+                <div>
+                  <label className={labelClass}>Comment voice preset</label>
+                  <select
+                    value={preferences.commentVoicePreset || 'balanced'}
+                    onChange={(e) =>
+                      setPreferences((prev) => ({
+                        ...prev,
+                        commentVoicePreset: e.target.value as GenerationPreferences['commentVoicePreset'],
+                      }))
+                    }
+                    className={inputPlain}
+                  >
+                    <option value="balanced">Balanced (default)</option>
+                    <option value="casual">Casual</option>
+                    <option value="professional">Professional</option>
+                    <option value="opinionated">Opinionated</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Naturalness level</label>
+                  <select
+                    value={preferences.naturalnessLevel || 'medium'}
+                    onChange={(e) =>
+                      setPreferences((prev) => ({
+                        ...prev,
+                        naturalnessLevel: e.target.value as GenerationPreferences['naturalnessLevel'],
+                      }))
+                    }
+                    className={inputPlain}
+                  >
+                    <option value="subtle">Subtle</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="allowMinorImperfections"
+                    type="checkbox"
+                    checked={preferences.allowMinorImperfections ?? true}
+                    onChange={(e) =>
+                      setPreferences((prev) => ({
+                        ...prev,
+                        allowMinorImperfections: e.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300"
+                  />
+                  <label htmlFor="allowMinorImperfections" className={labelClass}>
+                    Allow minor imperfections
+                  </label>
+                </div>
                 <div>
                   <label className={labelClass}>Min comment length</label>
                   <input

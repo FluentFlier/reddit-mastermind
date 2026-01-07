@@ -324,6 +324,9 @@ export interface GenerationPreferences {
   bannedPhrases?: string[];
   postGuidelines?: string;
   commentGuidelines?: string;
+  commentVoicePreset?: 'balanced' | 'casual' | 'professional' | 'opinionated';
+  naturalnessLevel?: 'subtle' | 'medium' | 'high';
+  allowMinorImperfections?: boolean;
   campaignBrief?: string;
   minCommentLength?: number;
   maxCommentLength?: number;

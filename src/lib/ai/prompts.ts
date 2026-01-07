@@ -144,6 +144,12 @@ export function buildCommentPrompt(config: {
         `${c.personaUsername}: "${c.content}"`
       ).join('\n')}`
     : '';
+
+  const voicePreset = preferences?.commentVoicePreset || 'balanced';
+  const naturalnessLevel = preferences?.naturalnessLevel || 'medium';
+  const allowMinorImperfections = preferences?.allowMinorImperfections !== false;
+  const personaPacingCues = buildPersonaPacingCues(persona);
+  const presetGuidance = getVoicePresetGuidance(voicePreset);
   
   return `You are "${persona.username}" commenting on a Reddit post.
 
@@ -157,6 +163,7 @@ Style: ${persona.postingStyle === 'gives_answers' ? 'You tend to provide helpful
         'You engage naturally in discussions'}
 ${persona.accountAgeDays ? `Account age: ~${persona.accountAgeDays} days` : ''}
 ${persona.karma ? `Karma: ~${persona.karma}` : ''}
+Pacing cues: ${personaPacingCues}
 
 === THE POST (by ${post.personaUsername}) ===
 Title: ${post.title}
@@ -168,6 +175,11 @@ ${weeklyGoals?.length ? weeklyGoals.map(goal => `- ${goal}`).join('\n') : 'Not s
 
 === RISK TOLERANCE ===
 ${riskTolerance || 'medium'}
+
+=== NATURALNESS TARGET ===
+Voice preset: ${voicePreset} (${presetGuidance})
+Naturalness level: ${naturalnessLevel}
+Minor imperfections allowed: ${allowMinorImperfections ? 'Yes (small, human imperfections only)' : 'No (keep polished)'}
 
 === YOUR TASK ===
 ${isFirstComment 
@@ -191,18 +203,45 @@ ${(shouldMentionProduct && preferences?.allowProductMention !== false)
 ${persona.postingStyle === 'gives_answers' 
   ? '10. Share practical advice or specific recommendations based on your expertise'
   : '10. Share your own experience or perspective on the topic'}
-${forceDisagreement ? '11. Include a mild disagreement or nuance (e.g., "depends", "in my case", "but").' : ''}
-${preferences?.minCommentLength ? `12. Minimum length: ${preferences.minCommentLength} characters` : ''}
-${preferences?.maxCommentLength ? `13. Hard max: ${preferences.maxCommentLength} characters (stop early).` : ''}
-${preferences?.bannedPhrases?.length ? `14. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
-${preferences?.campaignBrief ? `15. Campaign brief (must follow exactly, do not expand or add extra context): ${preferences.campaignBrief}` : ''}
-${preferences?.commentGuidelines ? `16. Additional guidance: ${preferences.commentGuidelines}` : ''}
+11. Mix sentence lengths and tone (some short, some longer) to sound organic
+12. Use light hedging when appropriate (e.g., "imo", "maybe", "kinda"), but do not overdo it
+${allowMinorImperfections ? '13. Allow a tiny bit of human imperfection (minor grammar looseness), without hurting clarity' : '13. Keep grammar clean and polished'}
+${forceDisagreement ? '14. Include a mild disagreement or nuance (e.g., "depends", "in my case", "but").' : ''}
+${preferences?.minCommentLength ? `15. Minimum length: ${preferences.minCommentLength} characters` : ''}
+${preferences?.maxCommentLength ? `16. Hard max: ${preferences.maxCommentLength} characters (stop early).` : ''}
+${preferences?.bannedPhrases?.length ? `17. Avoid these phrases: ${preferences.bannedPhrases.join(', ')}` : ''}
+${preferences?.campaignBrief ? `18. Campaign brief (must follow exactly, do not expand or add extra context): ${preferences.campaignBrief}` : ''}
+${preferences?.commentGuidelines ? `19. Additional guidance: ${preferences.commentGuidelines}` : ''}
 
 === OUTPUT FORMAT ===
 Respond with JSON only:
 {
   "text": "Your comment here"
 }`;
+}
+
+function buildPersonaPacingCues(persona: Persona): string {
+  if (persona.postingStyle === 'asks_questions') {
+    return 'Often asks a quick follow-up question; conversational and reflective.';
+  }
+  if (persona.postingStyle === 'gives_answers') {
+    return 'Leans practical and structured; may include a quick tip or mini-list.';
+  }
+  return 'Mix of concise reactions and short explanations; keeps it conversational.';
+}
+
+function getVoicePresetGuidance(preset: GenerationPreferences['commentVoicePreset']): string {
+  switch (preset) {
+    case 'casual':
+      return 'Relaxed, informal, and chatty without being sloppy.';
+    case 'professional':
+      return 'Clear, precise, and measured; minimal slang.';
+    case 'opinionated':
+      return 'More assertive and subjective, but still respectful and grounded.';
+    case 'balanced':
+    default:
+      return 'Neutral, natural Reddit tone with light personality.';
+  }
 }
 
 /**
